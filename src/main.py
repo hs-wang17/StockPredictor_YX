@@ -1,4 +1,4 @@
-from config.config import load_config
+import config.config as config
 import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
 import pipeline.predict as pipeline_predict
@@ -13,23 +13,23 @@ import os
 import tqdm
 
 def run():
-    args = load_config()
-    logger = utils_logger.setup_logger(log_dir=args.log_dir)
-
     # Setup logger
-    logger = utils_logger.setup_logger(log_dir=args.log_dir)
+    args, logger = config.load_config_with_logger()
 
     # Generate training and prediction periods
     date_list = sorted([file_name[:8] for file_name in os.listdir(args.data_dir)])
     num_periods, train_dates_list, predict_dates_list = utils_function.generate_train_predict_dates(
         date_list, 
-        train_period_years=args.train_period_years, 
-        predict_period_months=args.predict_period_months, 
-        slide_period_months=args.slide_period_months
+        train_period_days=args.train_period_days, 
+        predict_period_days=args.predict_period_days, 
+        slide_period_days=args.slide_period_days,
+        gap_days=args.gap_days
     )
 
     logger.info(f"Number of periods: {num_periods}")
-    logger.info("=" * 40)
+    logger.info("=" * 60)
+
+    all_predictions_list = []
 
     for i in range(num_periods)[:2]:
         logger.info(f"Period {i+1}:")
@@ -72,11 +72,32 @@ def run():
 
         # Train model
         model = utils_model.mlp_model(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
-        model = pipeline_train.train_model(model, train_dataloader, logger)
+        model = pipeline_train.train_model(
+            model, train_dataloader, logger, 
+            model_save_dir=args.model_save_dir, 
+            epochs=args.epochs, 
+            learning_rate=args.learning_rate,
+            device=args.device,
+            project_name=args.project_name,
+            period_index=i,
+            model_save_frequency=args.model_save_frequency
+            )
         
         # Make predictions
-        predictions = pipeline_predict.make_predictions(model, predict_dataloader, logger)
-        print(predictions)
-        logger.info(f"Predictions for period {i+1}:\n{predictions}")
+        predictions = pipeline_predict.make_predictions(
+            model, predict_dataloader, logger,
+            predictions_save_dir=args.predictions_save_dir,
+            device=args.device
+            )
+        
+        all_predictions_list.append(predictions)
+
+    # Combine all period predictions
+    logger.info("Concatenating all period predictions...")
+    combined_predictions = pd.concat(all_predictions_list)
+    combined_output_path = os.path.join(args.predictions_save_dir, f"{args.project_name}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}_combined_predictions.csv")
+    combined_predictions.to_csv(combined_output_path)
+    logger.info(f"All periods combined predictions saved to {combined_output_path}")
+    logger.info("All periods processed.")
 
 run()

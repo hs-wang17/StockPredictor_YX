@@ -1,10 +1,17 @@
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import pandas as pd
 import tqdm
 import numpy as np
+import os
 
-def make_predictions(model: torch.nn.Module, dataloader: DataLoader, logger, output_file: str = None) -> pd.DataFrame:
+def make_predictions(
+        model: torch.nn.Module,
+        dataloader: DataLoader,
+        logger,
+        predictions_save_dir: str = '/home/user0/results/predictions',
+        device: str = 'cuda'
+    ) -> pd.DataFrame:
     """
     Make predictions using the trained model and provided DataLoader.
     Save predictions with corresponding stock codes into a CSV file.
@@ -12,34 +19,51 @@ def make_predictions(model: torch.nn.Module, dataloader: DataLoader, logger, out
     Args:
         model (torch.nn.Module): The trained model.
         dataloader (DataLoader): DataLoader containing the data to make predictions on.
-        output_file (str): The path where the predictions will be saved as a CSV file.
+        logger (logging.Logger): Logger for process tracking.
+        predictions_save_dir (str): Directory to save the prediction CSV files.
+        device (str): Device to use ('cuda' or 'cpu').
     
     Returns:
-        np.ndarray: The predictions as a numpy array.
+        pd.DataFrame: The predictions as a pivot table (stock_code × date).
     """
-    model.eval()  # Set the model to evaluation mode
-    predictions = []
-    dates = []
-    stock_codes = []
+    os.makedirs(predictions_save_dir, exist_ok=True)
+    model = model.to(device)
+    model.eval()
 
-    with torch.no_grad():  # Disable gradient calculation for inference
-        for date, stock_code, features, labels in dataloader:
-            outputs = model(features)  # Model prediction
-            predictions.append(pd.Series(outputs.numpy().squeeze()))        # Convert to numpy and then to Pandas Series
-            dates.append(pd.Series(date.numpy().squeeze()))                 # Convert to numpy and then to Pandas Series
-            stock_codes.append(pd.Series(stock_code.numpy().squeeze()))     # Convert to numpy and then to Pandas Series
+    predictions, dates, stock_codes = [], [], []
+    logger.info("Starting prediction...")
 
-    # Concatenate the predictions and stock codes
+    with torch.no_grad():
+        for date, stock_code, features, labels in tqdm.tqdm(dataloader, desc="Predicting", leave=False):
+            # Move tensors to device
+            features = features.to(device)
+            
+            # Forward pass
+            outputs = model(features)
+
+            # Move results back to CPU for processing
+            outputs = outputs.detach().cpu().numpy().squeeze()
+            date = date.detach().cpu().numpy().squeeze()
+            stock_code = stock_code.detach().cpu().numpy().squeeze()
+
+            # Collect results
+            predictions.append(pd.Series(outputs))
+            dates.append(pd.Series(date))
+            stock_codes.append(pd.Series(stock_code))
+
+    # Concatenate predictions
     predictions = pd.concat(predictions, ignore_index=True)
     dates = pd.concat(dates, ignore_index=True)
     stock_codes = pd.concat(stock_codes, ignore_index=True)
-    stock_codes = stock_codes.apply(lambda x: str(x).zfill(6))
+    stock_codes = stock_codes.apply(lambda x: str(int(x)).zfill(6))
 
-    # Create a DataFrame with stock codes and predictions
+    # Assemble final DataFrame
     result_df = pd.DataFrame({
         'date': dates,
         'stock_code': stock_codes,
         'prediction': predictions
     }).pivot(index='stock_code', columns='date', values='prediction')
+
+    logger.info("Prediction completed successfully.")
 
     return result_df

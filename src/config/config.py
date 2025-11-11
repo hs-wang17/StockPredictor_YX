@@ -1,84 +1,59 @@
 import argparse
 import os
-
+import utils.logger as utils_logger
 
 def parse_args():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Run the stock prediction pipeline.")
 
-    parser.add_argument(
-        '--data_dir', type=str, default='/home/user0/data/StockDailyData/',
-        help="Directory containing stock data files"
-    )
-    parser.add_argument(
-        '--filter_file_path', type=str, default='config/filter_index.fea',
-        help="Path to filter index file"
-    )
-    parser.add_argument(
-        '--log_dir', type=str, default='/home/user0/results/logs',
-        help="Directory to save logs"
-    )
-    parser.add_argument(
-        '--model_dir', type=str, default='/home/user0/results/models',
-        help="Directory to save models"
-    )
-    parser.add_argument(
-        '--num_periods', type=int, default=None,
-        help="Number of periods to process (default: all)"
-    )
-    parser.add_argument(
-        '--predict_batch_size', type=int, default=1,
-        help="Batch size for model prediction (default: 64)"
-    )
-    parser.add_argument(
-        '--predict_period_months', type=int, default=3,
-        help="Number of months for the prediction period (default: 3)"
-    )
-    parser.add_argument(
-        '--results_dir', type=str, default='/home/user0/results/predictions',
-        help="Directory to save predictions"
-    )
-    parser.add_argument(
-        '--slide_period_months', type=int, default=3,
-        help="Number of months for the sliding window (default: 3)"
-    )
-    parser.add_argument(
-        '--train_batch_size', type=int, default=1,
-        help="Batch size for model training (default: 64)"
-    )
-    parser.add_argument(
-        '--train_period_years', type=int, default=3,
-        help="Number of years for the training period (default: 3)"
-    )
+    parser.add_argument('--data_dir', type=str, default='/home/user0/data/StockDailyData/', help="Directory containing stock data files")
+    parser.add_argument('--device', type=str, default='cuda', help="Device to use for computation ('cuda' or 'cpu')")
+    parser.add_argument('--epochs', type=int, default=10, help="Number of training epochs (default: 10)")
+    parser.add_argument('--filter_file_path', type=str, default='config/filter_index.fea', help="Path to filter index file")
+    parser.add_argument('--gap_days', type=int, default=20, help="Days between end of training and start of prediction")
+    parser.add_argument('--learning_rate', type=float, default=0.001, help="Learning rate for training (default: 0.001)")
+    parser.add_argument('--log_dir', type=str, default='/home/user0/results/logs', help="Directory to save logs")
+    parser.add_argument('--model_save_dir', type=str, default='/home/user0/results/models', help="Directory to save models")
+    parser.add_argument('--num_periods', type=int, default=None, help="Number of periods to process (default: all)")
+    parser.add_argument('--predict_batch_size', type=int, default=1, help="Batch size for prediction (default: 1)")
+    parser.add_argument('--predict_period_days', type=int, default=60, help="Number of days for prediction period (default: 60)")
+    parser.add_argument('--predictions_save_dir', type=str, default='/home/user0/results/predictions', help="Directory to save predictions")
+    parser.add_argument('--project_name', type=str, default='StockPredictor', help="Name of the project/experiment")
+    parser.add_argument('--model_save_frequency', type=int, default=5, help="Frequency (in epochs) to save model (default: 5)")
+    parser.add_argument('--slide_period_days', type=int, default=60, help="Sliding window length in days (default: 60)")
+    parser.add_argument('--train_batch_size', type=int, default=1, help="Batch size for training (default: 64)")
+    parser.add_argument('--train_period_days', type=int, default=720, help="Number of days for training period (default: 720)")
 
     return parser.parse_args()
 
 
+
 def ensure_directories(args):
     """Ensure that all output directories exist."""
-    for path in [args.log_dir, args.model_dir, args.results_dir]:
+    for path in [args.log_dir, args.model_save_dir, args.predictions_save_dir]:
         os.makedirs(path, exist_ok=True)
 
 
-def show_config(args):
+def show_config(args, logger=None):
     """Pretty-print all configuration parameters."""
-    print("=" * 60)
-    print("Experiment Configuration")
-    print("=" * 60)
-    for k, v in vars(args).items():
-        print(f"{k:25s}: {v}")
-    print("=" * 60)
+    if logger:
+        logger.info("=" * 60)
+        logger.info("Experiment Configuration")
+        logger.info("=" * 60)
+        for k, v in vars(args).items():
+            logger.info(f"{k:25s}: {v}")
+        logger.info("=" * 60)
+    else:
+        print("=" * 60)
+        print("Experiment Configuration")
+        print("=" * 60)
+        for k, v in vars(args).items():
+            print(f"{k:25s}: {v}")
+        print("=" * 60)
 
-
-def load_config():
-    """
-    Unified entry point:
-    - Parse arguments
-    - Create necessary directories
-    - Display current configuration
-    """
+def load_config_with_logger():
     args = parse_args()
     ensure_directories(args)
-    show_config(args)
-    
-    return args
+    logger = utils_logger.setup_logger(log_dir=args.log_dir)
+    show_config(args, logger=logger)
+    return args, logger

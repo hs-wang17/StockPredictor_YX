@@ -2,7 +2,11 @@ import logging
 import os
 from datetime import datetime
 
-def setup_logger(log_dir="/home/user0/results/logs", log_filename=f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log"):
+def setup_logger(
+        log_dir: str = "/home/user0/results/logs", 
+        log_filename: str = f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log",
+        project_name: str = 'StockPredictor'
+    ) -> logging.Logger:
     """
     设置并返回一个日志记录器，日志将保存到指定文件并同时打印到控制台。
 
@@ -18,7 +22,7 @@ def setup_logger(log_dir="/home/user0/results/logs", log_filename=f"{datetime.no
         os.makedirs(log_dir)
 
     # 日志文件的完整路径
-    log_file = os.path.join(log_dir, log_filename)
+    log_file = os.path.join(log_dir, f"{project_name}_{log_filename}")
 
     # 设置日志的基本配置
     logging.basicConfig(
