@@ -1,4 +1,3 @@
-from config.config import load_config
 import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
 import pipeline.predict as pipeline_predict
@@ -10,11 +9,51 @@ import utils.model as utils_model
 import numpy as np
 import pandas as pd
 import os
+import argparse
 import tqdm
 
+def parse_args():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(description="Run the stock prediction pipeline.")
+    
+    parser.add_argument(
+        '--train_period_years', type=int, default=3, help="Number of years for the training period (default: 3)"
+    )
+    parser.add_argument(
+        '--predict_period_months', type=int, default=3, help="Number of months for the prediction period (default: 3)"
+    )
+    parser.add_argument(
+        '--slide_period_months', type=int, default=3, help="Number of months for the sliding window (default: 3)"
+    )
+    parser.add_argument(
+        '--data_dir', type=str, default='/home/user0/data/StockDailyData/', help="Directory containing stock data files"
+    )
+    parser.add_argument(
+        '--num_periods', type=int, default=None, help="Number of periods to process (default: all)"
+    )
+    parser.add_argument(
+        '--log_dir', type=str, default='/home/user0/results/logs', help="Directory to save logs"
+    )
+    parser.add_argument(
+        '--model_dir', type=str, default='/home/user0/results/models', help="Directory to save models"
+    )
+    parser.add_argument(
+        '--results_dir', type=str, default='/home/user0/results/predictions', help="Directory to save predictions"
+    )
+    parser.add_argument(
+        '--train_batch_size', type=int, default=1, help="Batch size for model training (default: 64)"
+    )
+    parser.add_argument(
+        '--predict_batch_size', type=int, default=1, help="Batch size for model training (default: 64)"
+    )
+    parser.add_argument(
+        '--filter_file_path', type=str, default='config/filter_index.fea', help="Path to filter index file"
+    )
+    
+    return parser.parse_args()
+
 def run():
-    args = load_config()
-    logger = utils_logger.setup_logger(log_dir=args.log_dir)
+    args = parse_args()
 
     # Setup logger
     logger = utils_logger.setup_logger(log_dir=args.log_dir)
@@ -33,8 +72,8 @@ def run():
 
     for i in range(num_periods)[:2]:
         logger.info(f"Period {i+1}:")
-        logger.info(f"  Train Dates: {train_dates_list[i][0]} to {train_dates_list[i][-1]}; Length: {len(train_dates_list[i])} days")
-        logger.info(f"  Predict Dates: {predict_dates_list[i][0]} to {predict_dates_list[i][-1]}; Length: {len(predict_dates_list[i])} days")
+        logger.info(f"  Train Dates: {train_dates_list[i]}")
+        logger.info(f"  Predict Dates: {predict_dates_list[i]}")
 
         # Load and preprocess data for the current period
         train_date_list, predict_date_list = train_dates_list[i], predict_dates_list[i]
@@ -79,4 +118,5 @@ def run():
         print(predictions)
         logger.info(f"Predictions for period {i+1}:\n{predictions}")
 
+    
 run()

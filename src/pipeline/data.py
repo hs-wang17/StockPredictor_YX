@@ -30,19 +30,12 @@ def normalize_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
 
 def standardize_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     """Standardize specified columns in the DataFrame to have mean 0 and std 1."""
-    for col in columns:
-        mean_val = df[col].mean()
-        std_val = df[col].std()
-        df[col] = (df[col] - mean_val) / std_val
+    df[columns] = df[columns].apply(lambda col: (col - col.mean()) / col.std())
     return df
 
 def winsorize_columns(df: pd.DataFrame, columns: list, lower_quantile: float = 0.01, upper_quantile: float = 0.99) -> pd.DataFrame:
     """Winsorize specified columns in the DataFrame based on given quantiles."""
-    for col in columns:
-        lower_bound = df[col].quantile(lower_quantile)
-        upper_bound = df[col].quantile(upper_quantile)
-        df[col] = np.where(df[col] < lower_bound, lower_bound, df[col])
-        df[col] = np.where(df[col] > upper_bound, upper_bound, df[col])
+    df[columns] = df[columns].apply(lambda col: np.clip(col, col.quantile(lower_quantile), col.quantile(upper_quantile)))
     return df
 
 def iqr_columns(df: pd.DataFrame, columns: list, factor: float = 1.5) -> pd.DataFrame:
@@ -58,6 +51,5 @@ def iqr_columns(df: pd.DataFrame, columns: list, factor: float = 1.5) -> pd.Data
 
 def log_transform_columns(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     """Apply log transformation to specified columns in the DataFrame."""
-    for col in columns:
-        df[col] = np.log1p(df[col])  # log1p is used to handle zero values
+    df[columns] = df[columns].apply(lambda col: np.log1p(col))
     return df

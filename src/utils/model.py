@@ -19,16 +19,17 @@ class StockDataset(Dataset):
 
     def __getitem__(self, idx):
         data, target = self.data_list[idx]
-        stock_code = torch.tensor(data.iloc[:, 0].astype(int).values, dtype=torch.int64)
-        features = torch.tensor(data.iloc[:, 1:].values, dtype=torch.float32)
+        date = torch.tensor(data.iloc[:, 0].astype(int).values, dtype=torch.int64)
+        stock_code = torch.tensor(data.iloc[:, 1].astype(int).values, dtype=torch.int64)
+        features = torch.tensor(data.iloc[:, 2:].values, dtype=torch.float32)
         label = torch.tensor(target.values, dtype=torch.float32)
-        return stock_code, features, label
+        return date, stock_code, features, label
 
-def get_dataloader(train_data_list, batch_size: int = 64, shuffle: bool = False) -> DataLoader:
+def get_dataloader(data_list, batch_size: int = 64, shuffle: bool = False) -> DataLoader:
     """
     Function to generate a DataLoader from a list of (data, target) tuples.
     """
-    dataset = StockDataset(train_data_list)
+    dataset = StockDataset(data_list)
     return DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 def mlp_model(input_dim: int, hidden_dim: int, output_dim: int) -> torch.nn.Module:

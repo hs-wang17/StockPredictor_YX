@@ -19,22 +19,27 @@ def make_predictions(model: torch.nn.Module, dataloader: DataLoader, logger, out
     """
     model.eval()  # Set the model to evaluation mode
     predictions = []
+    dates = []
     stock_codes = []
 
     with torch.no_grad():  # Disable gradient calculation for inference
-        for codes, features, _ in dataloader:
+        for date, stock_code, features, labels in dataloader:
             outputs = model(features)  # Model prediction
-            predictions.append(pd.Series(outputs.numpy().squeeze()))  # Convert to numpy and then to Pandas Series
-            stock_codes.append(pd.Series(codes.numpy().squeeze()))  # Convert to numpy and then to Pandas Series
+            predictions.append(pd.Series(outputs.numpy().squeeze()))        # Convert to numpy and then to Pandas Series
+            dates.append(pd.Series(date.numpy().squeeze()))                 # Convert to numpy and then to Pandas Series
+            stock_codes.append(pd.Series(stock_code.numpy().squeeze()))     # Convert to numpy and then to Pandas Series
 
     # Concatenate the predictions and stock codes
     predictions = pd.concat(predictions, ignore_index=True)
+    dates = pd.concat(dates, ignore_index=True)
     stock_codes = pd.concat(stock_codes, ignore_index=True)
+    stock_codes = stock_codes.apply(lambda x: str(x).zfill(6))
 
     # Create a DataFrame with stock codes and predictions
     result_df = pd.DataFrame({
+        'date': dates,
         'stock_code': stock_codes,
         'prediction': predictions
-    })
-    print(result_df)
+    }).pivot(index='stock_code', columns='date', values='prediction')
+
     return result_df
