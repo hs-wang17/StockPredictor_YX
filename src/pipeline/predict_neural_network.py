@@ -4,13 +4,15 @@ import pandas as pd
 import tqdm
 import numpy as np
 import os
+import swanlab
 
-def make_predictions(
+def make_predictions_neural_network(
         model: torch.nn.Module,
         dataloader: DataLoader,
         logger,
         predictions_save_dir: str = '/home/user0/results/predictions',
-        device: str = 'cuda'
+        device: str = 'cuda',
+        use_swanlab: bool = True
     ) -> pd.DataFrame:
     """
     Make predictions using the trained model and provided DataLoader.
@@ -65,5 +67,11 @@ def make_predictions(
     }).pivot(index='stock_code', columns='date', values='prediction')
 
     logger.info("Prediction completed successfully.")
+
+    if use_swanlab:
+        swanlab.log({
+            "prediction/mean": np.mean(predictions),
+            "prediction/std": np.std(predictions),
+        })
 
     return result_df

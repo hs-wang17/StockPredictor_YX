@@ -1,16 +1,18 @@
 import config.config as config
 import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
-import pipeline.predict as pipeline_predict
-import pipeline.train as pipeline_train
+import pipeline.predict_neural_network as pipeline_predict_neural_network
+import pipeline.train_neural_network as pipeline_train_neural_network
+import utils.dataloader as utils_dataloader
 import utils.function as utils_function
 import utils.logger as utils_logger
-import utils.model as utils_model
+import utils.neural_network_model as utils_neural_network_model
 
 import numpy as np
 import pandas as pd
 import os
 import tqdm
+import swanlab
 
 def run():
     # Setup logger
@@ -67,12 +69,12 @@ def run():
             target = pipeline_data.load_data(file_path).iloc[:, 4]                                      # TODO: Adjust target column as needed
             predict_data_list.append((data, target))
 
-        train_dataloader = utils_model.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
-        predict_dataloader = utils_model.get_dataloader(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)
+        train_dataloader = utils_dataloader.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
+        predict_dataloader = utils_dataloader.get_dataloader(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)
 
         # Train model
-        model = utils_model.mlp_model(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
-        model = pipeline_train.train_model(
+        model = utils_neural_network_model.neural_network_model(input_dim=len(feature_cols), hidden_dim=64, output_dim=1)
+        model = pipeline_train_neural_network.train_neural_network_model(
             model, train_dataloader, logger, 
             model_save_dir=args.model_save_dir, 
             epochs=args.epochs, 
@@ -80,14 +82,16 @@ def run():
             device=args.device,
             project_name=args.project_name,
             period_index=i,
-            model_save_frequency=args.model_save_frequency
+            model_save_frequency=args.model_save_frequency,
+            use_swanlab=args.use_swanlab
             )
         
         # Make predictions
-        predictions = pipeline_predict.make_predictions(
+        predictions = pipeline_predict_neural_network.make_predictions_neural_network(
             model, predict_dataloader, logger,
             predictions_save_dir=args.predictions_save_dir,
-            device=args.device
+            device=args.device,
+            use_swanlab=args.use_swanlab
             )
         
         all_predictions_list.append(predictions)
@@ -100,4 +104,8 @@ def run():
     logger.info(f"All periods combined predictions saved to {combined_output_path}")
     logger.info("All periods processed.")
 
-run()
+    if args.use_swanlab:
+        swanlab.finish()
+
+if __name__ == "__main__":
+    run()

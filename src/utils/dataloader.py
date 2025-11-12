@@ -1,8 +1,5 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
-import pandas as pd
-import numpy as np
-import tqdm
 
 class StockDataset(Dataset):
     def __init__(self, data_list):
@@ -31,29 +28,3 @@ def get_dataloader(data_list, batch_size: int = 64, shuffle: bool = False) -> Da
     """
     dataset = StockDataset(data_list)
     return DataLoader(dataset, batch_size=batch_size, shuffle=False)
-
-def mlp_model(input_dim: int, hidden_dim: int, output_dim: int) -> torch.nn.Module:
-    """
-    Define a simple MLP model.
-    """
-    model = torch.nn.Sequential(
-        torch.nn.Linear(input_dim, hidden_dim),
-        torch.nn.ReLU(),
-        torch.nn.Linear(hidden_dim, output_dim)
-    )
-    return model
-
-def save_model(model: torch.nn.Module, file_path: str):
-    """
-    Save the trained model to a file.
-    """
-    torch.save(model.state_dict(), file_path)
-
-def load_model(model: torch.nn.Module, file_path: str) -> torch.nn.Module:
-    """
-    Load a trained model from a file.
-    """
-    model.load_state_dict(torch.load(file_path))
-    model.eval()
-    return model
-

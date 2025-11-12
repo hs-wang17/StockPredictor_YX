@@ -23,16 +23,21 @@ def parse_args():
     parser.add_argument('--slide_period_days', type=int, default=60, help="Sliding window length in days (default: 60)")
     parser.add_argument('--train_batch_size', type=int, default=1, help="Batch size for training (default: 64)")
     parser.add_argument('--train_period_days', type=int, default=720, help="Number of days for training period (default: 720)")
+    parser.add_argument('--use_swanlab', type=bool, default=True, help="Enable SwanLab logging")
+
+    parser.add_argument('--lgb_n_estimators', type=int, default=1000, help="Number of boosting iterations for LightGBM (default: 1000)")
+    parser.add_argument('--early_stopping_rounds', type=int, default=50, help="Early stopping rounds for LightGBM (default: 50)")
+    parser.add_argument('--valid_size', type=float, default=0.1, help="Validation set proportion (default: 0.1)")
+    parser.add_argument('--verbose_eval', type=int, default=50, help="LightGBM evaluation log frequency (default: 50)")
+    parser.add_argument('--random_seed', type=int, default=42, help="Random seed for reproducibility (default: 42)")
+    parser.add_argument('--lgb_params', type=str, default=None, help="Optional JSON string for LightGBM params, e.g. '{\"num_leaves\":63,\"learning_rate\":0.01}'")
 
     return parser.parse_args()
-
-
 
 def ensure_directories(args):
     """Ensure that all output directories exist."""
     for path in [args.log_dir, args.model_save_dir, args.predictions_save_dir]:
         os.makedirs(path, exist_ok=True)
-
 
 def show_config(args, logger=None):
     """Pretty-print all configuration parameters."""
