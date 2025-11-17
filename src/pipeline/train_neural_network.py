@@ -6,21 +6,23 @@ from datetime import datetime
 import json
 import swanlab
 import numpy as np
+import utils.neural_network_model as utils_neural_network_model
+
 
 def train_neural_network_model(
-        model: torch.nn.Module,
-        dataloader: DataLoader,
-        logger,
-        epochs: int = 10,
-        learning_rate: float = 0.001,
-        model_save_dir: str = "/home/user0/results/models/",
-        save_model: bool = True,
-        device: str = 'cuda',
-        project_name: str = 'StockPredictor',
-        period_index: int = 0,
-        model_save_frequency: int = 5,
-        use_swanlab: bool = True
-    ) -> torch.nn.Module:
+    model: torch.nn.Module,
+    dataloader: DataLoader,
+    logger,
+    epochs: int = 100,
+    learning_rate: float = 1e-5,
+    model_save_dir: str = "/home/user0/results/models/",
+    save_model: bool = True,
+    device: str = "cuda",
+    project_name: str = "StockPredictor",
+    period_index: int = 0,
+    model_save_frequency: int = 5,
+    use_swanlab: bool = True,
+) -> torch.nn.Module:
     """
     Train the given model using the provided DataLoader and optionally save checkpoints.
 
@@ -47,23 +49,25 @@ def train_neural_network_model(
     logger.info(f"Training started on device: {device}")
     logger.info(f"Total epochs: {epochs}, Learning rate: {learning_rate}, Save model: {save_model}")
 
-    criterion = torch.nn.MSELoss()
+    # criterion = torch.nn.MSELoss()
+    criterion = utils_neural_network_model.ICLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     training_history = []
-    
+
     if use_swanlab:
         swanlab.init(
             project=project_name,
             experiment_name=f"period_{period_index}_{timestamp}",
+            log_level="ERROR",
             config={
                 "epochs": epochs,
                 "learning_rate": learning_rate,
                 "model_save_frequency": model_save_frequency,
                 "device": device,
-                "period_index": period_index
-            }
+                "period_index": period_index,
+            },
         )
-    
+
     # Training
     try:
         for epoch in range(1, epochs + 1):
@@ -74,7 +78,6 @@ def train_neural_network_model(
             for date, stock_code, features, labels in tqdm.tqdm(dataloader, desc=f"Epoch {epoch}/{epochs}", ncols=80):
                 features = features.to(device)
                 labels = labels.to(device)
-
                 optimizer.zero_grad()
                 outputs = model(features)
                 loss = criterion(outputs.squeeze(), labels.squeeze())
@@ -85,7 +88,7 @@ def train_neural_network_model(
                     if p.grad is not None:
                         param_norm = p.grad.data.norm(2)
                         total_norm += param_norm.item() ** 2
-                grad_norm = total_norm ** 0.5
+                grad_norm = total_norm**0.5
                 grad_norms.append(grad_norm)
 
                 optimizer.step()
@@ -98,16 +101,15 @@ def train_neural_network_model(
             logger.info(f"Epoch [{epoch}/{epochs}] - Loss: {avg_loss:.6f} | Grad Norm: {avg_grad_norm:.6f}")
 
             if use_swanlab:
-                swanlab.log({
-                    "epoch": epoch,
-                    "train/loss": avg_loss,
-                    "train/grad_norm": avg_grad_norm
-                }, step=epoch)
+                swanlab.log({"epoch": epoch, "train/loss": avg_loss, "train/grad_norm": avg_grad_norm}, step=epoch)
 
             # Save model checkpoint
             if save_model and (epoch % model_save_frequency == 0 or epoch == epochs):
                 os.makedirs(os.path.join(model_save_dir, f"{project_name}_{timestamp}_model"), exist_ok=True)
-                model_path = os.path.join(model_save_dir, f"{project_name}_{timestamp}_model/{project_name}_{timestamp}_model_period_{period_index}_epoch{epoch}_loss{avg_loss:.6f}.pt")
+                model_path = os.path.join(
+                    model_save_dir,
+                    f"{project_name}_{timestamp}_model/{project_name}_{timestamp}_model_period_{period_index}_epoch{epoch}_loss{avg_loss:.6f}.pt",
+                )
                 torch.save(model.state_dict(), model_path)
                 logger.info(f"Model saved: {model_path}")
 

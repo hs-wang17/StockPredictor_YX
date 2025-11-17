@@ -2,11 +2,10 @@ import logging
 import os
 from datetime import datetime
 
+
 def setup_logger(
-        log_dir: str = "/home/user0/results/logs", 
-        log_filename: str = f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log",
-        project_name: str = 'StockPredictor'
-    ) -> logging.Logger:
+    log_dir: str = "/home/user0/results/logs", log_filename: str = f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log", project_name: str = "StockPredictor"
+) -> logging.Logger:
     """
     设置并返回一个日志记录器，日志将保存到指定文件并同时打印到控制台。
 
@@ -27,14 +26,12 @@ def setup_logger(
     # 设置日志的基本配置
     logging.basicConfig(
         level=logging.DEBUG,  # 记录所有级别的日志
-        format='%(asctime)s - %(levelname)s - %(message)s',  # 日志格式
-        handlers=[
-            logging.FileHandler(log_file),  # 保存日志到文件
-            logging.StreamHandler()  # 同时打印到控制台
-        ]
+        format="%(asctime)s - %(levelname)s - %(message)s",  # 日志格式
+        handlers=[logging.FileHandler(log_file), logging.StreamHandler()],  # 保存日志到文件  # 同时打印到控制台
     )
 
     # 返回日志记录器
     logger = logging.getLogger()
+    logging.disable(logging.DEBUG)
 
     return logger

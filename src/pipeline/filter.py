@@ -10,7 +10,7 @@ def read_filter_index(file_path: str, period_index: int) -> list:
     if os.path.exists(file_path):
         return pd.read_feather(file_path)[period_index].tolist()
     else:
-        return [2, 3, 5, 7]
+        return None
 
 def calculate_correlation(df: pd.DataFrame) -> pd.DataFrame:
     """Calculate the Pearson correlation matrix for all features."""
