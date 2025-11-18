@@ -2,7 +2,7 @@ import config.config_neural_network as config
 import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
 import pipeline.predict_neural_network_with_validation as pipeline_predict_neural_network
-import pipeline.train_neural_network_with_validation as pipeline_train_neural_network
+import pipeline.train_neural_network_with_validation_parallel as pipeline_train_neural_network
 import utils.dataloader as utils_dataloader
 import utils.function as utils_function
 import utils.neural_network_model as utils_neural_network_model
@@ -112,14 +112,13 @@ def run():
         predict_dataset, predict_dataloader = utils_dataloader.get_dataloader(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)
 
         # Train model
-        model = pipeline_train_neural_network.train_neural_network_model(
+        model = pipeline_train_neural_network.train_neural_network_model_parallel(
             utils_neural_network_model.neural_network_model(input_dim=len(feature_cols), hidden_dim=args.hidden_dim, output_dim=1),
             train_dataset,  # train_dataloader when without validation
             logger,
             model_save_dir=args.model_save_dir,
             epochs=args.epochs,
             learning_rate=args.learning_rate,
-            device=args.device,
             project_name=args.project_name,
             period_index=i,
             model_save_frequency=args.model_save_frequency,
@@ -137,7 +136,6 @@ def run():
             logger,
             model_save_dir=args.model_save_dir,
             predictions_save_dir=args.predictions_save_dir,
-            project_name=args.project_name,
             device=args.device,
             use_swanlab=args.use_swanlab,
             timestamp=timestamp,

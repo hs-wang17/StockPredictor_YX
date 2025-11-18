@@ -33,7 +33,7 @@
 # -----------------------------
 # Run Python script
 # -----------------------------
-python /home/user0/project/predictor/src/main_neural_network.py \
+python /home/user0/project/predictor/src/main_neural_network_parallel.py \
     --data_dir "${DATA_DIR}" \
     --device "${DEVICE}" \
     --epochs "${EPOCHS}" \

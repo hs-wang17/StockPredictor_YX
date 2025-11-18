@@ -7,10 +7,10 @@
 
 The pipeline integrates:
 
-* Data loading & preprocessing / 数据加载与预处理
-* Feature selection & filtering / 特征选择与过滤
-* Model training & prediction / 模型训练与预测
-* Logging & configurable parameters / 日志记录与可配置参数
+- Data loading & preprocessing / 数据加载与预处理
+- Feature selection & filtering / 特征选择与过滤
+- Model training & prediction / 模型训练与预测
+- Logging & configurable parameters / 日志记录与可配置参数
 
 ---
 
@@ -65,11 +65,11 @@ pip install -r requirements.txt
 
 Typical dependencies / 主要依赖：
 
-* `torch` 🧠
-* `pandas` 🐼
-* `numpy` 🔢
-* `tqdm` ⏳
-* `lightgbm` 🌳
+- `torch` 🧠
+- `pandas` 🐼
+- `numpy` 🔢
+- `tqdm` ⏳
+- `lightgbm` 🌳
 
 ---
 
@@ -77,29 +77,29 @@ Typical dependencies / 主要依赖：
 
 All parameters are configurable via command-line arguments / 所有参数均可通过命令行指定。
 
-| Argument                  | Description / 说明                                     |
-| ------------------------- | ---------------------------------------------------- |
-| `--data_dir`              | Directory with stock data / 数据目录                     |
-| `--device`                | Device for computation (`cuda` or `cpu`) / 训练设备      |
-| `--epochs`                | NN training epochs / 神经网络训练轮数                        |
-| `--learning_rate`         | NN learning rate / 神经网络学习率                           |
+| Argument                  | Description / 说明                                         |
+| ------------------------- | ---------------------------------------------------------- |
+| `--data_dir`              | Directory with stock data / 数据目录                       |
+| `--device`                | Device for computation (`cuda` or `cpu`) / 训练设备        |
+| `--epochs`                | NN training epochs / 神经网络训练轮数                      |
+| `--learning_rate`         | NN learning rate / 神经网络学习率                          |
 | `--train_period_days`     | Days for training period / 训练周期天数                    |
 | `--predict_period_days`   | Days for prediction period / 预测周期天数                  |
-| `--gap_days`              | Gap between training and prediction / 训练与预测间隔天数      |
-| `--train_batch_size`      | NN training batch size / 神经网络训练批次大小                  |
-| `--predict_batch_size`    | NN prediction batch size / 神经网络预测批次大小                |
+| `--gap_days`              | Gap between training and prediction / 训练与预测间隔天数   |
+| `--train_batch_size`      | NN training batch size / 神经网络训练批次大小              |
+| `--predict_batch_size`    | NN prediction batch size / 神经网络预测批次大小            |
 | `--model_save_dir`        | Directory to save models / 模型保存目录                    |
-| `--predictions_save_dir`  | Directory to save predictions / 预测结果保存目录             |
-| `--project_name`          | Project/experiment name / 项目名称                       |
-| `--model_save_frequency`  | Save NN model every N epochs / 每 N 轮保存神经网络模型         |
+| `--predictions_save_dir`  | Directory to save predictions / 预测结果保存目录           |
+| `--project_name`          | Project/experiment name / 项目名称                         |
+| `--model_save_frequency`  | Save NN model every N epochs / 每 N 轮保存神经网络模型     |
 | `--slide_period_days`     | Sliding window length / 滑动窗口长度                       |
-| `--filter_file_path`      | Feature filter file path / 特征筛选文件路径                  |
-| `--num_periods`           | Number of periods to process / 处理周期数                 |
-| `--lgb_n_estimators`      | LightGBM boosting iterations / LightGBM迭代轮数          |
-| `--early_stopping_rounds` | LightGBM early stopping rounds / LightGBM早停轮数        |
-| `--valid_size`            | LightGBM validation set proportion / LightGBM验证集比例   |
-| `--verbose_eval`          | LightGBM evaluation log frequency / LightGBM日志输出间隔   |
-| `--lgb_params`            | LightGBM hyperparameters JSON string / LightGBM超参数配置 |
+| `--filter_file_path`      | Feature filter file path / 特征筛选文件路径                |
+| `--num_periods`           | Number of periods to process / 处理周期数                  |
+| `--lgb_n_estimators`      | LightGBM boosting iterations / LightGBM 迭代轮数           |
+| `--early_stopping_rounds` | LightGBM early stopping rounds / LightGBM 早停轮数         |
+| `--valid_size`            | LightGBM validation set proportion / LightGBM 验证集比例   |
+| `--verbose_eval`          | LightGBM evaluation log frequency / LightGBM 日志输出间隔  |
+| `--lgb_params`            | LightGBM hyperparameters JSON string / LightGBM 超参数配置 |
 
 Use `python src/main.py --help` to see all options / 查看所有参数：
 
@@ -156,12 +156,12 @@ python src/main_ensemble.py \
 
 ## 📖 Documentation / 文档
 
-* `docs/flowchart.md` contains pipeline workflow diagrams / 流程图
-* Additional documentation for NN & LightGBM:
+- `docs/flowchart.md` contains pipeline workflow diagrams / 流程图
+- Additional documentation for NN & LightGBM:
 
-  * Data preprocessing / 数据预处理
-  * Feature selection / 特征选择
-  * Model architecture & hyperparameters / 模型结构与超参数
+  - Data preprocessing / 数据预处理
+  - Feature selection / 特征选择
+  - Model architecture & hyperparameters / 模型结构与超参数
 
 ---
 
@@ -169,11 +169,11 @@ python src/main_ensemble.py \
 
 Logs are saved in `log_dir` / 日志保存在 `log_dir` 目录：
 
-* Start & end of each period / 每个周期的开始与结束
-* NN loss per epoch / 神经网络每轮损失
-* LightGBM metrics / LightGBM评估指标
-* Prediction start & end / 预测开始与结束
-* Errors / 错误信息
+- Start & end of each period / 每个周期的开始与结束
+- NN loss per epoch / 神经网络每轮损失
+- LightGBM metrics / LightGBM 评估指标
+- Prediction start & end / 预测开始与结束
+- Errors / 错误信息
 
 ---
 
@@ -181,7 +181,7 @@ Logs are saved in `log_dir` / 日志保存在 `log_dir` 目录：
 
 You can contribute / 贡献建议：
 
-* New NN architectures / 新的神经网络模型
-* Feature engineering methods / 新的特征工程方法
-* Pipeline optimization / 流水线优化与加速
-* LightGBM enhancements / LightGBM优化
+- New NN architectures / 新的神经网络模型
+- Feature engineering methods / 新的特征工程方法
+- Pipeline optimization / 流水线优化与加速
+- LightGBM enhancements / LightGBM 优化

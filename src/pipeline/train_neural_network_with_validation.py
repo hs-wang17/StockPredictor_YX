@@ -15,7 +15,7 @@ def train_neural_network_model(
     dataset,
     logger,
     epochs: int = 200,
-    learning_rate: float = 1e-5,
+    learning_rate: float = 1e-4,
     model_save_dir: str = "/home/user0/results/models/",
     save_model: bool = True,
     device: str = "cuda",
@@ -116,13 +116,13 @@ def train_neural_network_model(
 
             # 保存 checkpoint
             if save_model and (epoch % model_save_frequency == 0 or epoch == epochs):
-                fold_model_dir = os.path.join(model_save_dir, f"{project_name}_{timestamp}_fold{fold_idx}_model")
+                fold_model_dir = os.path.join(model_save_dir, f"{project_name}_{timestamp}_period_{period_index}_fold{fold_idx}_model")
                 os.makedirs(fold_model_dir, exist_ok=True)
-                model_path = os.path.join(fold_model_dir, f"{project_name}_{timestamp}_fold{fold_idx}_epoch{epoch}.pt")
+                model_path = os.path.join(fold_model_dir, f"{project_name}_{timestamp}_period_{period_index}_fold{fold_idx}_epoch{epoch}.pt")
                 torch.save(model, model_path)
                 logger.info(f"Model saved: {model_path}")
 
-                checkpoint_path = os.path.join(model_save_dir, f"{project_name}_{timestamp}_fold{fold_idx}_checkpoint.json")
+                checkpoint_path = os.path.join(model_save_dir, f"{project_name}_{timestamp}_period_{period_index}_fold{fold_idx}_checkpoint.json")
                 if os.path.exists(checkpoint_path):
                     with open(checkpoint_path, "r") as f:
                         checkpoint_list = json.load(f)

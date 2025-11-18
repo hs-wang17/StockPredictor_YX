@@ -12,6 +12,7 @@ def make_predictions_neural_network(
     dataloader: DataLoader,
     logger,
     predictions_save_dir: str = "/home/user0/results/predictions",
+    project_name: str = "StockPredictor",
     device: str = "cuda",
     use_swanlab: bool = True,
     period_index: int = 0,
@@ -35,6 +36,8 @@ def make_predictions_neural_network(
     Returns:
         pd.DataFrame: Pivot table of averaged predictions (stock_code × date).
     """
+
+    predictions_save_dir = os.path.join(predictions_save_dir, f"{project_name}_{timestamp}")
     os.makedirs(predictions_save_dir, exist_ok=True)
     logger.info(f"Starting prediction with {len(models)} fold(s)...")
 
