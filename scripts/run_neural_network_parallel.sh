@@ -7,17 +7,20 @@
 # -----------------------------
 # Default parameters (can be overridden by ENV variables)
 # -----------------------------
-: "${DATA_DIR:=/home/user0/mydata/concat_daily_factor}"
+: "${BEGIN_PERIOD:=0}"
+: "${DATA_DIR:=/home/user0/mydata/concat_daily_factor_with_label}"
 : "${DEVICE:=cuda:0}"
+: "${END_DATE:=20251015}"
 : "${EPOCHS:=200}"
 : "${FILTER_FILE_PATH:=config/filter_index.fea}"
 : "${GAP_DAYS:=20}"
 : "${HIDDEN_DIM:=64}"
 : "${K_FOLDS:=4}"
-: "${LABEL_FILE_PATH:=/home/user0/mydata/label.fea}"
+# : "${LABEL_FILE_PATH:=/home/user0/mydata/label.fea}"
 : "${LEARNING_RATE:=1e-4}"
 : "${LR_DECAY_GAMMA:=0.99}"
 : "${LOG_DIR:=/home/user0/results/logs}"
+: "${MODEL_TYPE:=resnet}"
 : "${MODEL_SAVE_DIR:=/home/user0/results/models}"
 : "${NUM_PERIODS:=}"
 : "${PREDICT_BATCH_SIZE:=64}"
@@ -26,6 +29,7 @@
 : "${PROJECT_NAME:=StockPredictor}"
 : "${MODEL_SAVE_FREQUENCY:=20}"
 : "${SLIDE_PERIOD_DAYS:=60}"
+: "${START_DATE:=20210101}"
 : "${TRAIN_BATCH_SIZE:=1}"
 : "${TRAIN_PERIOD_DAYS:=720}"
 : "${USE_SWANLAB:=True}"
@@ -34,17 +38,19 @@
 # Run Python script
 # -----------------------------
 python /home/user0/project/predictor/src/main_neural_network_parallel.py \
+    --begin_period "${BEGIN_PERIOD}" \
     --data_dir "${DATA_DIR}" \
     --device "${DEVICE}" \
+    --end_date "${END_DATE}" \
     --epochs "${EPOCHS}" \
     --filter_file_path "${FILTER_FILE_PATH}" \
     --gap_days "${GAP_DAYS}" \
     --hidden_dim "${HIDDEN_DIM}" \
     --k_folds "${K_FOLDS}" \
-    --label_file_path "${LABEL_FILE_PATH}" \
     --learning_rate "${LEARNING_RATE}" \
     --lr_decay_gamma "${LR_DECAY_GAMMA}" \
     --log_dir "${LOG_DIR}" \
+    --model_type "${MODEL_TYPE}" \
     --model_save_dir "${MODEL_SAVE_DIR}" \
     --predict_batch_size "${PREDICT_BATCH_SIZE}" \
     --predict_period_days "${PREDICT_PERIOD_DAYS}" \
@@ -52,6 +58,7 @@ python /home/user0/project/predictor/src/main_neural_network_parallel.py \
     --project_name "${PROJECT_NAME}" \
     --model_save_frequency "${MODEL_SAVE_FREQUENCY}" \
     --slide_period_days "${SLIDE_PERIOD_DAYS}" \
+    --start_date "${START_DATE}" \
     --train_batch_size "${TRAIN_BATCH_SIZE}" \
     --train_period_days "${TRAIN_PERIOD_DAYS}" \
     --use_swanlab "${USE_SWANLAB}" \

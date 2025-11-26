@@ -24,6 +24,7 @@ def _train_single_fold(rank: int, model, dataset, train_idx, val_idx, args: dict
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args["lr_decay_gamma"])
 
     best_val_loss = float("inf")
+    best_model = None
 
     # 收集每轮的日志（主进程统一上传 swanlab）
     history = {"train_loss": [], "val_loss": [], "grad_norm": [], "lr": []}
@@ -77,17 +78,18 @@ def _train_single_fold(rank: int, model, dataset, train_idx, val_idx, args: dict
             best_val_loss = avg_val_loss
             fold_model_dir = os.path.join(args["model_save_dir"], f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_model")
             os.makedirs(fold_model_dir, exist_ok=True)
+            best_model = model
             best_model_path = os.path.join(
                 fold_model_dir, f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_epoch{epoch}.pt"
             )
-            torch.save(model, best_model_path)
+        torch.save(best_model, best_model_path)
 
-        # 保存检查点
-        if args["save_model"] and epoch % args["model_save_frequency"] == 0:
-            fold_model_dir = os.path.join(args["model_save_dir"], f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_model")
-            os.makedirs(fold_model_dir, exist_ok=True)
-            model_path = os.path.join(fold_model_dir, f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_epoch{epoch}.pt")
-            torch.save(model, model_path)
+        # # 保存检查点
+        # if args["save_model"] and epoch % args["model_save_frequency"] == 0:
+        #     fold_model_dir = os.path.join(args["model_save_dir"], f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_model")
+        #     os.makedirs(fold_model_dir, exist_ok=True)
+        #     model_path = os.path.join(fold_model_dir, f"{args['project_name']}_{args['timestamp']}_period_{args['period_index']}_fold{rank}_epoch{epoch}.pt")
+        #     torch.save(model, model_path)
 
     return best_model_path, best_val_loss, history
 

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class ICLoss(nn.Module):
@@ -18,6 +19,54 @@ class ICLoss(nn.Module):
         return loss
 
 
+class ResBlock(nn.Module):
+    def __init__(self, in_features, out_features):
+        super(ResBlock, self).__init__()
+        self.linear1 = nn.Linear(in_features, out_features)
+        self.ln1 = nn.LayerNorm(out_features)  # LayerNorm 替代 BatchNorm
+        self.linear2 = nn.Linear(out_features, out_features)
+        self.ln2 = nn.LayerNorm(out_features)
+        self.shortcut = nn.Sequential()
+        if in_features != out_features:
+            self.shortcut = nn.Sequential(nn.Linear(in_features, out_features))
+
+    def forward(self, x):
+        residual = self.shortcut(x)
+        x = F.relu(self.ln1(self.linear1(x)))
+        x = self.ln2(self.linear2(x))
+        x += residual
+        x = F.relu(x)
+        return x
+
+
+class ResNetModel(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(ResNetModel, self).__init__()
+        self.input_linear = nn.Linear(input_dim, hidden_dim * 4)
+        self.input_ln = nn.LayerNorm(hidden_dim * 4)
+        self.res_blocks = nn.Sequential(ResBlock(hidden_dim * 4, hidden_dim))
+        self.output = nn.Sequential(nn.Dropout(0.1), nn.Linear(hidden_dim, output_dim))
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.LayerNorm):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        x = self.input_linear(x)
+        x = self.input_ln(x)
+        x = F.relu(x)
+        x = self.res_blocks(x)
+        x = self.output(x)
+        return x
+
+
 def neural_network_model(input_dim: int, hidden_dim: int, output_dim: int, model_type: str = "mlp") -> torch.nn.Module:
     """
     Define a simple neural network model.
@@ -30,19 +79,8 @@ def neural_network_model(input_dim: int, hidden_dim: int, output_dim: int, model
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_dim, output_dim),
         )
-    elif model_type == "cnn":
-        model = torch.nn.Sequential(
-            torch.nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=3, padding=1),
-            torch.nn.ReLU(),
-            torch.nn.Flatten(),
-            torch.nn.Linear(hidden_dim * input_dim, output_dim),
-        )
-    elif model_type == "rnn":
-        model = torch.nn.Sequential(torch.nn.RNN(input_size=input_dim, hidden_size=hidden_dim, batch_first=True), torch.nn.Linear(hidden_dim, output_dim))
-    elif model_type == "transformer":
-        model = torch.nn.Sequential(torch.nn.Transformer(d_model=input_dim, nhead=4, num_encoder_layers=2), torch.nn.Linear(input_dim, output_dim))
-    elif model_type == "lstm":
-        model = torch.nn.Sequential(torch.nn.LSTM(input_size=input_dim, hidden_size=hidden_dim, batch_first=True), torch.nn.Linear(hidden_dim, output_dim))
+    elif model_type == "resnet":
+        model = ResNetModel(input_dim, hidden_dim, output_dim)
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
     return model

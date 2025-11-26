@@ -7,22 +7,25 @@ def parse_args():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Run the stock prediction pipeline.")
 
+    parser.add_argument("--begin_period", type=int, default=0, help="Starting period for data processing (default: 0)")
     parser.add_argument(
         "--data_dir",
         type=str,
-        default="/home/user0/mydata/concat_daily_factor",
-        help="Directory containing stock data files (default: '/home/user0/mydata/concat_daily_factor')",
+        default="/home/user0/mydata/concat_daily_factor_with_label",
+        help="Directory containing stock data files (default: '/home/user0/mydata/concat_daily_factor_with_label')",
     )
     parser.add_argument("--device", type=str, default="cuda:0", help="Device to use for computation (default: 'cuda:0')")
+    parser.add_argument("--end_date", type=str, default="20250930", help="End date for data processing (default: '20250930')")
     parser.add_argument("--epochs", type=int, default=200, help="Number of training epochs (default: 200)")
     parser.add_argument("--filter_file_path", type=str, default="config/filter_index.fea", help="Path to filter index file")
     parser.add_argument("--gap_days", type=int, default=20, help="Days between end of training and start of prediction")
     parser.add_argument("--hidden_dim", type=int, default=64, help="Hidden dimension size for the neural network (default: 64)")
     parser.add_argument("--k_folds", type=int, default=4, help="Number of folds for K-fold cross-validation (default: 4)")
-    parser.add_argument("--label_file_path", type=str, default="/home/user0/mydata/label.fea", help="Path to label file")
+    # parser.add_argument("--label_file_path", type=str, default="/home/user0/mydata/label.fea", help="Path to label file")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate for training (default: 1e-4)")
     parser.add_argument("--lr_decay_gamma", type=float, default=0.99, help="Learning rate decay gamma (default: 0.99)")
     parser.add_argument("--log_dir", type=str, default="/home/user0/results/logs", help="Directory to save logs (default: '/home/user0/results/logs')")
+    parser.add_argument("--model_type", type=str, default="mlp", help="Type of model to use (default: 'mlp')")
     parser.add_argument(
         "--model_save_dir", type=str, default="/home/user0/results/models", help="Directory to save models (default: '/home/user0/results/models')"
     )
@@ -33,6 +36,7 @@ def parse_args():
     parser.add_argument("--project_name", type=str, default="StockPredictor", help="Name of the project/experiment")
     parser.add_argument("--model_save_frequency", type=int, default=5, help="Frequency (in epochs) to save model (default: 5)")
     parser.add_argument("--slide_period_days", type=int, default=60, help="Sliding window length in days (default: 60)")
+    parser.add_argument("--start_date", type=str, default="20210101", help="Start date for data processing (default: '20200101')")
     parser.add_argument("--train_batch_size", type=int, default=1, help="Batch size for training (default: 1)")
     parser.add_argument("--train_period_days", type=int, default=720, help="Number of days for training period (default: 720)")
     parser.add_argument("--use_swanlab", type=bool, default=True, help="Enable SwanLab logging")

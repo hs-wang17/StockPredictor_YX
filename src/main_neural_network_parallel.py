@@ -21,8 +21,9 @@ def run():
 
     # Generate training and prediction periods
     date_list = sorted([file_name[:8] for file_name in os.listdir(args.data_dir)[:]])  # Get all available dates
-    train_date_list = pd.read_feather("/home/user0/mydata/trade_date.fea")  # Load trade date list
-    date_list = [date for date in date_list if date in train_date_list["trade_date"].astype(str).tolist()]  # Filter dates to include only trade dates
+    trade_date_list = pd.read_feather("/home/user0/mydata/trade_date.fea")  # Load trade date list
+    date_list = [date for date in date_list if date in trade_date_list["trade_date"].astype(str).tolist()]  # Filter dates to include only trade dates
+    date_list = [date for date in date_list if date >= args.start_date and date <= args.end_date]  # Filter dates based on start and end dates
 
     num_periods, train_dates_list, predict_dates_list = utils_function.generate_train_predict_dates(
         date_list,
@@ -35,7 +36,7 @@ def run():
     logger.info(f"Number of periods: {num_periods}")
     logger.info("=" * 60)
 
-    label = pipeline_data.load_data(args.label_file_path)
+    # label = pipeline_data.load_data(args.label_file_path)
     all_predictions_list = []
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -63,6 +64,10 @@ def run():
         )
 
     for i in range(num_periods):
+        if hasattr(args, "begin_period") and i < args.begin_period:
+            logger.info(f"Skipping period {i+1} because begin_period={args.begin_period}")
+            continue
+
         logger.info(f"Period {i+1}:")
         logger.info(f"  Train Dates: {train_dates_list[i][0]} to {train_dates_list[i][-1]}; Length: {len(train_dates_list[i])} days")
         logger.info(f"  Predict Dates: {predict_dates_list[i][0]} to {predict_dates_list[i][-1]}; Length: {len(predict_dates_list[i])} days")
@@ -75,6 +80,8 @@ def run():
         for date in tqdm.tqdm(train_date_list, desc="Loading training data"):
             file_path = os.path.join(args.data_dir, f"{date}.fea")
             data = pipeline_data.load_data(file_path)
+            target = data["label"]
+            data = data.drop(columns=["label"])
             data.columns = [data.columns[j].strip() for j in range(len(data.columns))]  # Strip column names
             if filter_index is not None:
                 feature_cols = data.columns[filter_index]  # Select features based on filter index
@@ -86,13 +93,19 @@ def run():
             data = pipeline_data.normalize_columns(data, feature_cols)  # Normalize features
             data = pipeline_data.fill_missing_values(data, fill_value=0.0)  # Handle missing values
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
-            target = label.loc[date]
-            target = pipeline_data.fill_missing_values(target, fill_value=0.0)  # Handle missing values in target
+            # target = label.loc[date]
+            # valid_codes = target.dropna().index
+            # target = target.loc[valid_codes]
+            # data = data[data["code"].isin(valid_codes)].reset_index(drop=True)
+            # data = data.set_index("code").loc[target.index].reset_index()
+            # target = pipeline_data.fill_missing_values(target, fill_value=0.0)  # Handle missing values in target
             train_data_list.append((data, target))
 
         for date in tqdm.tqdm(predict_date_list, desc="Loading prediction data"):
             file_path = os.path.join(args.data_dir, f"{date}.fea")
             data = pipeline_data.load_data(file_path)
+            target = data["label"]
+            data = data.drop(columns=["label"])
             data.columns = [data.columns[j].strip() for j in range(len(data.columns))]  # Strip column names
             if filter_index is not None:
                 feature_cols = data.columns[filter_index]  # Select features based on filter index
@@ -104,8 +117,12 @@ def run():
             data = pipeline_data.normalize_columns(data, feature_cols)  # Normalize features
             data = pipeline_data.fill_missing_values(data, fill_value=0.0)  # Handle missing values
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
-            target = label.loc[date]
-            target = pipeline_data.fill_missing_values(target, fill_value=0.0)  # Handle missing values in target
+            # target = label.loc[date]
+            # valid_codes = target.dropna().index
+            # target = target.loc[valid_codes]
+            # data = data[data["code"].isin(valid_codes)].reset_index(drop=True)
+            # data = data.set_index("code").loc[target.index].reset_index()
+            # target = pipeline_data.fill_missing_values(target, fill_value=0.0)  # Handle missing values in target
             predict_data_list.append((data, target))
 
         train_dataset, train_dataloader = utils_dataloader.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
@@ -113,7 +130,7 @@ def run():
 
         # Train model
         model = pipeline_train_neural_network.train_neural_network_model_parallel(
-            utils_neural_network_model.neural_network_model(input_dim=len(feature_cols), hidden_dim=args.hidden_dim, output_dim=1),
+            utils_neural_network_model.neural_network_model(input_dim=len(feature_cols), hidden_dim=args.hidden_dim, output_dim=1, model_type=args.model_type),
             train_dataset,  # train_dataloader when without validation
             logger,
             model_save_dir=args.model_save_dir,
