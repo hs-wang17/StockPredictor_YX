@@ -1,8 +1,8 @@
 import config.config_ensemble as config
 import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
-import pipeline.predict_ensemble as pipeline_predict_ensemble
-import pipeline.train_ensemble as pipeline_train_ensemble
+import pipeline.predict_ensemble_with_validation as pipeline_predict_ensemble
+import pipeline.train_ensemble_with_validation_parallel as pipeline_train_ensemble
 import utils.ensemble_model as utils_ensemble_model
 import utils.function as utils_function
 import utils.logger as utils_logger
@@ -89,10 +89,10 @@ def run():
             data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
             data = pipeline_data.winsorize_columns(data, feature_cols, lower_quantile=0.01, upper_quantile=0.99)
             data = pipeline_data.standardize_columns(data, feature_cols)
-            data = pipeline_data.fill_missing_values(data)
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
             temp = data.copy()
             temp["target"] = target.values
+            temp = pipeline_data.fill_missing_values(temp)
             train_frames.append(temp)
 
         # Loading and normalizing prediction data
@@ -112,17 +112,17 @@ def run():
             data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
             data = pipeline_data.winsorize_columns(data, feature_cols, lower_quantile=0.01, upper_quantile=0.99)
             data = pipeline_data.standardize_columns(data, feature_cols)
-            data = pipeline_data.fill_missing_values(data)
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
             temp = data.copy()
             temp["target"] = target.values
+            temp = pipeline_data.fill_missing_values(temp)
             predict_frames.append(temp)
 
         train_df = pd.concat(train_frames, ignore_index=True)
         predict_df = pd.concat(predict_frames, ignore_index=True)
 
         # Create LightGBM model
-        model = utils_ensemble_model.create_lgbm_model(
+        base_model = utils_ensemble_model.create_lgbm_model(
             n_estimators=args.n_estimators,
             objective=args.objective,
             boosting_type=args.boosting_type,
@@ -136,15 +136,15 @@ def run():
         )
 
         # Train model
-        model = pipeline_train_ensemble.train_lightgbm_model(
-            model,
-            train_df,
-            logger,
+        models = pipeline_train_ensemble.train_lightgbm_model(
+            model=base_model,
+            train_df=train_df,
+            logger=logger,
             model_save_dir=args.model_save_dir,
             period_index=i,
             project_name=args.project_name,
+            k_folds=args.k_folds,
             early_stopping_rounds=args.early_stopping_rounds,
-            valid_size=args.valid_size,
             verbose_eval=args.verbose_eval,
             random_state=args.random_state,
             use_gpu=args.use_gpu,
@@ -154,13 +154,14 @@ def run():
 
         # Make predictions
         predictions = pipeline_predict_ensemble.make_predictions_lightgbm(
-            model,
-            predict_df,
-            logger,
-            model_save_dir=args.model_save_dir,
+            models=models,
+            predict_df=predict_df,
+            logger=logger,
             predictions_save_dir=args.predictions_save_dir,
             project_name=args.project_name,
             period_index=i,
+            date_col="date",
+            code_col="code",
             timestamp=timestamp,
             feature_cols=feature_cols,
         )

@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument("--end_date", type=str, default="20250930", help="End date for data processing (default: '20250930')")
     parser.add_argument("--filter_file_path", type=str, default="config/filter_index.fea", help="Path to filter index file")
     parser.add_argument("--gap_days", type=int, default=20, help="Days between end of training and start of prediction")
+    parser.add_argument("--k_folds", type=int, default=4, help="Number of folds for K-fold cross-validation (default: 4)")
     parser.add_argument("--label_file_path", type=str, default="/home/user0/mydata/label.fea", help="Path to label file")
     parser.add_argument("--log_dir", type=str, default="/home/user0/results/logs", help="Directory to save logs")
     parser.add_argument("--model_save_dir", type=str, default="/home/user0/results/models", help="Directory to save models")

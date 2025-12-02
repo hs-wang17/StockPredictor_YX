@@ -15,6 +15,7 @@
 : "${TRAIN_PERIOD_DAYS:=720}"
 : "${PREDICT_PERIOD_DAYS:=60}"
 : "${GAP_DAYS:=20}"
+: "${K_FOLDS:=4}"
 : "${LOG_DIR:=/home/user0/results/logs}"
 : "${MODEL_SAVE_DIR:=/home/user0/results/models}"
 : "${PREDICTIONS_SAVE_DIR:=/home/user0/results/predictions}"
@@ -27,19 +28,19 @@
 # -----------------------------
 # LightGBM-specific parameters
 # -----------------------------
-: "${N_ESTIMATORS:=1000}"
+: "${N_ESTIMATORS:=10000}"
 : "${OBJECTIVE:=regression}"
 : "${BOOSTING_TYPE:=gbdt}"
 : "${RANDOM_STATE:=42}"
-: "${LEARNING_RATE:=0.01}"
-: "${NUM_LEAVES:=31}"
+: "${LEARNING_RATE:=0.05}"
+: "${NUM_LEAVES:=255}"
 : "${MIN_DATA_IN_LEAF:=20}"
-: "${FEATURE_FRACTION:=0.8}"
+: "${FEATURE_FRACTION:=0.7}"
 : "${BAGGING_FRACTION:=0.8}"
 : "${BAGGING_FREQ:=1}"
-: "${EARLY_STOPPING_ROUNDS:=50}"
+: "${EARLY_STOPPING_ROUNDS:=500}"
 : "${VALID_SIZE:=0.1}"
-: "${VERBOSE_EVAL:=50}"
+: "${VERBOSE_EVAL:=100}"
 
 # -----------------------------
 # Run Python script
@@ -53,6 +54,7 @@ python /home/user0/project/predictor/src/main_ensemble.py \
     --train_period_days "${TRAIN_PERIOD_DAYS}" \
     --predict_period_days "${PREDICT_PERIOD_DAYS}" \
     --gap_days "${GAP_DAYS}" \
+    --k_folds "${K_FOLDS}" \
     --log_dir "${LOG_DIR}" \
     --model_save_dir "${MODEL_SAVE_DIR}" \
     --predictions_save_dir "${PREDICTIONS_SAVE_DIR}" \

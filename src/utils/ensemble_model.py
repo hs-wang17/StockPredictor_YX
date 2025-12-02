@@ -17,8 +17,8 @@ def create_lgbm_model(
     bagging_freq: int = 1,
 ) -> lgb.LGBMRegressor:
     """
-    创建 LGBM 回归器 (sklearn API wrapper)。
-    params: lightgbm 参数字典（会覆盖默认参数）。
+    Create a LightGBM model.
+    params: lightgbm model parameters.
     """
     params = {
         "objective": objective,
@@ -38,7 +38,7 @@ def create_lgbm_model(
 
 def save_lgbm_model(model: lgb.LGBMRegressor, file_path: str):
     """
-    保存整个 sklearn-wrapped LGBM 模型（使用 joblib，方便 reload 继续 predict）。
+    Save the model to a file using joblib.
     """
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     joblib.dump(model, file_path)
@@ -46,7 +46,7 @@ def save_lgbm_model(model: lgb.LGBMRegressor, file_path: str):
 
 def load_lgbm_model(file_path: str) -> lgb.LGBMRegressor:
     """
-    从文件加载模型。
+    Load the model from a file using joblib.
     """
     model = joblib.load(file_path)
     return model

@@ -24,9 +24,23 @@ def train_lightgbm_model(
     feature_cols: list = None,
 ) -> lgb.LGBMRegressor:
     """
-    训练 LightGBM 模型并保存。
-    - X, y: 整个训练集（DataFrame / Series），会随机划出一小部分做验证（若 valid_size=0 则不做验证）。
-    - 返回训练好的模型（sklearn API wrapper）。
+    Train a LightGBM model.
+    Parameters:
+    - model: LightGBM model instance (lgb.LGBMRegressor).
+    - train_df: DataFrame containing training data with features and target. The last column is assumed to be the target.
+    - logger: Logger for logging information.
+    - model_save_dir: Directory to save the trained model.
+    - period_index: Index of the current training period (for logging and saving).
+    - project_name: Name of the project (used in file naming).
+    - early_stopping_rounds: Number of rounds for early stopping.
+    - valid_size: Proportion of data to use for validation (between 0 and 1). If 0, no validation is done.
+    - verbose_eval: Frequency of logging during training.
+    - random_state: Random seed for reproducibility.
+    - use_gpu: Whether to use GPU for training if available.
+    - timestamp: Timestamp string for file naming.
+    - feature_cols: List of feature column names to use for training.
+    Returns:
+    - model: Trained LightGBM model.
     """
     start_ts = time.time()
     model_save_dir = os.path.join(model_save_dir, f"{project_name}_{timestamp}")
