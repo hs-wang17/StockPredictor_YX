@@ -1,6 +1,7 @@
 from datetime import datetime
 
-def generate_train_predict_dates(date_list, train_period_days=720, predict_period_days=60, slide_period_days=60, gap_days=10):
+
+def generate_train_predict_dates(date_list, train_period_days=720, predict_period_days=60, slide_period_days=60, gap_days=10, from_start=False):
     """
     Generate training and prediction period date lists based on the provided trading dates.
     Period lengths and slide steps are measured in trading days (not calendar days).
@@ -26,7 +27,10 @@ def generate_train_predict_dates(date_list, train_period_days=720, predict_perio
 
     while True:
         # Define index ranges
-        train_start_idx = start_idx
+        if from_start:
+            train_start_idx = 0
+        else:
+            train_start_idx = start_idx
         train_end_idx = start_idx + train_period_days
         predict_start_idx = train_end_idx + gap_days
         predict_end_idx = min(predict_start_idx + predict_period_days, n - 1)

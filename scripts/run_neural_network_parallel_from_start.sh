@@ -13,7 +13,7 @@
 : "${END_DATE:=20251024}"
 : "${EPOCHS:=200}"
 : "${FILTER_FILE_PATH:=config/filter_index.fea}"
-: "${FROM_START:=False}"
+: "${FROM_START:=True}"
 : "${GAP_DAYS:=20}"
 : "${HIDDEN_DIM:=64}"
 : "${K_FOLDS:=4}"
@@ -32,7 +32,7 @@
 : "${SLIDE_PERIOD_DAYS:=60}"
 : "${START_DATE:=20210101}"
 : "${TRAIN_BATCH_SIZE:=1}"
-: "${TRAIN_PERIOD_DAYS:=720}"
+: "${TRAIN_PERIOD_DAYS:=480}"
 : "${USE_SWANLAB:=True}"
 
 # -----------------------------

@@ -122,6 +122,15 @@ python src/main_neural_network.py \
     --gap_days 20
 ```
 
+or / 或者
+
+```bash
+screen -S stock_predictor -X quit
+screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_neural_network_parallel.sh > /home/user0/logs/run_para_20251205.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_neural_network_parallel_from_start.sh > /home/user0/logs/run_para_20251209.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_ensemble_parallel.sh > /home/user0/logs/run_para_20251202.log 2>&1'
+```
+
 Run the pipeline for LightGBM / Ensemble / 执行 LightGBM / 集成模型预测：
 
 ```bash

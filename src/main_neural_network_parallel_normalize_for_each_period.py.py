@@ -31,7 +31,6 @@ def run():
         predict_period_days=args.predict_period_days,
         slide_period_days=args.slide_period_days,
         gap_days=args.gap_days,
-        from_start=args.from_start,
     )  # Generate train and predict date lists for each period
 
     logger.info(f"Number of periods: {num_periods}")
@@ -73,12 +72,15 @@ def run():
         logger.info(f"  Train Dates: {train_dates_list[i][0]} to {train_dates_list[i][-1]}; Length: {len(train_dates_list[i])} days")
         logger.info(f"  Predict Dates: {predict_dates_list[i][0]} to {predict_dates_list[i][-1]}; Length: {len(predict_dates_list[i])} days")
 
+        # Load and preprocess data for the current period
         train_date_list, predict_date_list = train_dates_list[i], predict_dates_list[i]
         train_data_list, predict_data_list = [], []
         filter_index = pipeline_filter.read_filter_index(file_path=args.filter_file_path, period_index=i)
 
-        # Loading and preprocessing training data
-        logger.info("Loading and preprocessing training data...")
+        logger.info("Loading training data for period normalization...")
+        all_train_data = []
+        all_train_targets = []
+
         for date in tqdm.tqdm(train_date_list, desc="Loading training data"):
             file_path = os.path.join(args.data_dir, f"{date}.fea")
             data = pipeline_data.load_data(file_path)
@@ -92,13 +94,58 @@ def run():
             data = pd.concat([data.index.to_frame(name="code"), data[feature_cols]], axis=1).reset_index(drop=True)  # Keep only stock_code and feature columns
             data = pipeline_data.ensure_data_types(data)  # Ensure correct data types
             data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
-            data = pipeline_data.winsorize_columns(data, feature_cols, lower_quantile=0.01, upper_quantile=0.99)
-            data = pipeline_data.standardize_columns(data, feature_cols)
-            data = pipeline_data.fill_missing_values(data)
+
+            # Store data for later normalization
+            all_train_data.append((data, date))
+            all_train_targets.append(target)
+
+        # Calculate normalization parameters for the entire training period
+        logger.info("Calculating normalization parameters for the entire training period...")
+        combined_train_data = pd.concat([data for data, _ in all_train_data], ignore_index=True)
+        normalize_params = {}
+        for col in feature_cols:
+            q_low = combined_train_data[col].quantile(0.01)
+            q_high = combined_train_data[col].quantile(0.99)
+            combined_train_data[col] = combined_train_data[col].clip(q_low, q_high)
+            mean = combined_train_data[col].mean()
+            std = combined_train_data[col].std(ddof=1)  # use the number of all observations (including NaN)
+            # Store parameters
+            normalize_params[col] = {"quantile_low": q_low, "quantile_high": q_high, "mean": mean, "std": std}
+
+        # Save normalization parameters
+        normalize_params_path = os.path.join(args.model_save_dir, f"normalize_params_period_{i}.fea")
+        pd.DataFrame(normalize_params).to_feather(normalize_params_path)
+        logger.info(f"Normalization parameters saved to {normalize_params_path}")
+
+        # Apply normalization using the calculated parameters
+        logger.info("Applying normalization to training data...")
+        for (data, date), target in zip(all_train_data, all_train_targets):
+            # Apply normalization using saved parameters
+            for col in feature_cols:
+                q_low = normalize_params[col]["quantile_low"]
+                q_high = normalize_params[col]["quantile_high"]
+                mean = normalize_params[col]["mean"]
+                std = normalize_params[col]["std"]
+                # Winsorization
+                data[col] = data[col].clip(q_low, q_high)
+                # Standardization
+                data[col] = (data[col] - mean) / std
+                # Fill missing values
+                data[col] = data[col].replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
             train_data_list.append((data, target))
 
-        # Loading and normalizing prediction data
+        # # Load normalization parameters from training period (needed when training and prediction are separated)
+        # normalize_params_path = os.path.join(args.model_save_dir, f"normalize_params_period_{i}.fea")
+        # if os.path.exists(normalize_params_path):
+        #     normalize_params = pd.read_feather(normalize_params_path).to_dict()
+        #     logger.info(f"Loaded normalization parameters from {normalize_params_path}")
+        # else:
+        #     logger.error(f"Normalization parameters file not found: {normalize_params_path}")
+        #     raise FileNotFoundError(f"Normalization parameters file not found: {normalize_params_path}")
+
+        # Process prediction data using training period's normalization parameters
         logger.info("Loading and normalizing prediction data...")
         for date in tqdm.tqdm(predict_date_list, desc="Loading prediction data"):
             file_path = os.path.join(args.data_dir, f"{date}.fea")
@@ -113,9 +160,20 @@ def run():
             data = pd.concat([data.index.to_frame(name="code"), data[feature_cols]], axis=1).reset_index(drop=True)  # Keep only stock_code and feature columns
             data = pipeline_data.ensure_data_types(data)  # Ensure correct data types
             data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
-            data = pipeline_data.winsorize_columns(data, feature_cols, lower_quantile=0.01, upper_quantile=0.99)
-            data = pipeline_data.standardize_columns(data, feature_cols)
-            data = pipeline_data.fill_missing_values(data)
+
+            # Apply normalization using training period's parameters
+            for col in feature_cols:
+                q_low = normalize_params[col]["quantile_low"]
+                q_high = normalize_params[col]["quantile_high"]
+                mean = normalize_params[col]["mean"]
+                std = normalize_params[col]["std"]
+                # Winsorization
+                data[col] = data[col].clip(q_low, q_high)
+                # Standardization
+                data[col] = (data[col] - mean) / std
+                # Fill missing values
+                data[col] = data[col].replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
             data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
             predict_data_list.append((data, target))
 
