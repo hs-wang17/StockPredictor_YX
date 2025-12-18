@@ -6,6 +6,7 @@ import pipeline.train_neural_network_with_validation_parallel as pipeline_train_
 import utils.dataloader as utils_dataloader
 import utils.function as utils_function
 import utils.neural_network_model as utils_neural_network_model
+import utils.process_data_parallel as utils_process_data_parallel
 
 import numpy as np
 import pandas as pd
@@ -31,6 +32,7 @@ def run():
         predict_period_days=args.predict_period_days,
         slide_period_days=args.slide_period_days,
         gap_days=args.gap_days,
+        from_start=args.from_start,
     )  # Generate train and predict date lists for each period
 
     logger.info(f"Number of periods: {num_periods}")
@@ -64,6 +66,8 @@ def run():
         )
 
     for i in range(num_periods):
+        if args.inverse:
+            i = num_periods - 1 - i
         if hasattr(args, "begin_period") and i < args.begin_period:
             logger.info(f"Skipping period {i+1} because begin_period={args.begin_period}")
             continue
@@ -72,110 +76,21 @@ def run():
         logger.info(f"  Train Dates: {train_dates_list[i][0]} to {train_dates_list[i][-1]}; Length: {len(train_dates_list[i])} days")
         logger.info(f"  Predict Dates: {predict_dates_list[i][0]} to {predict_dates_list[i][-1]}; Length: {len(predict_dates_list[i])} days")
 
-        # Load and preprocess data for the current period
         train_date_list, predict_date_list = train_dates_list[i], predict_dates_list[i]
         train_data_list, predict_data_list = [], []
         filter_index = pipeline_filter.read_filter_index(file_path=args.filter_file_path, period_index=i)
 
-        logger.info("Loading training data for period normalization...")
-        all_train_data = []
-        all_train_targets = []
+        # Loading and preprocessing training data using parallel processing
+        logger.info("Loading and preprocessing training data...")
+        train_data_list, feature_cols = utils_process_data_parallel.key_parallel(
+            train_date_list, args.data_dir, filter_index=filter_index, n_jobs_calc=args.n_jobs_calc, n_jobs_io=args.n_jobs_io
+        )
 
-        for date in tqdm.tqdm(train_date_list, desc="Loading training data"):
-            file_path = os.path.join(args.data_dir, f"{date}.fea")
-            data = pipeline_data.load_data(file_path)
-            target = data["label"]
-            data = data.drop(columns=["label"])
-            data.columns = [data.columns[j].strip() for j in range(len(data.columns))]  # Strip column names
-            if filter_index is not None:
-                feature_cols = data.columns[filter_index]  # Select features based on filter index
-            else:
-                feature_cols = data.columns
-            data = pd.concat([data.index.to_frame(name="code"), data[feature_cols]], axis=1).reset_index(drop=True)  # Keep only stock_code and feature columns
-            data = pipeline_data.ensure_data_types(data)  # Ensure correct data types
-            data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
-
-            # Store data for later normalization
-            all_train_data.append((data, date))
-            all_train_targets.append(target)
-
-        # Calculate normalization parameters for the entire training period
-        logger.info("Calculating normalization parameters for the entire training period...")
-        combined_train_data = pd.concat([data for data, _ in all_train_data], ignore_index=True)
-        normalize_params = {}
-        for col in feature_cols:
-            q_low = combined_train_data[col].quantile(0.01)
-            q_high = combined_train_data[col].quantile(0.99)
-            combined_train_data[col] = combined_train_data[col].clip(q_low, q_high)
-            mean = combined_train_data[col].mean()
-            std = combined_train_data[col].std(ddof=1)  # use the number of all observations (including NaN)
-            # Store parameters
-            normalize_params[col] = {"quantile_low": q_low, "quantile_high": q_high, "mean": mean, "std": std}
-
-        # Save normalization parameters
-        normalize_params_path = os.path.join(args.model_save_dir, f"normalize_params_period_{i}.fea")
-        pd.DataFrame(normalize_params).to_feather(normalize_params_path)
-        logger.info(f"Normalization parameters saved to {normalize_params_path}")
-
-        # Apply normalization using the calculated parameters
-        logger.info("Applying normalization to training data...")
-        for (data, date), target in zip(all_train_data, all_train_targets):
-            # Apply normalization using saved parameters
-            for col in feature_cols:
-                q_low = normalize_params[col]["quantile_low"]
-                q_high = normalize_params[col]["quantile_high"]
-                mean = normalize_params[col]["mean"]
-                std = normalize_params[col]["std"]
-                # Winsorization
-                data[col] = data[col].clip(q_low, q_high)
-                # Standardization
-                data[col] = (data[col] - mean) / std
-                # Fill missing values
-                data[col] = data[col].replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-            data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
-            train_data_list.append((data, target))
-
-        # # Load normalization parameters from training period (needed when training and prediction are separated)
-        # normalize_params_path = os.path.join(args.model_save_dir, f"normalize_params_period_{i}.fea")
-        # if os.path.exists(normalize_params_path):
-        #     normalize_params = pd.read_feather(normalize_params_path).to_dict()
-        #     logger.info(f"Loaded normalization parameters from {normalize_params_path}")
-        # else:
-        #     logger.error(f"Normalization parameters file not found: {normalize_params_path}")
-        #     raise FileNotFoundError(f"Normalization parameters file not found: {normalize_params_path}")
-
-        # Process prediction data using training period's normalization parameters
+        # Loading and normalizing prediction data using parallel processing
         logger.info("Loading and normalizing prediction data...")
-        for date in tqdm.tqdm(predict_date_list, desc="Loading prediction data"):
-            file_path = os.path.join(args.data_dir, f"{date}.fea")
-            data = pipeline_data.load_data(file_path)
-            target = data["label"]
-            data = data.drop(columns=["label"])
-            data.columns = [data.columns[j].strip() for j in range(len(data.columns))]  # Strip column names
-            if filter_index is not None:
-                feature_cols = data.columns[filter_index]  # Select features based on filter index
-            else:
-                feature_cols = data.columns
-            data = pd.concat([data.index.to_frame(name="code"), data[feature_cols]], axis=1).reset_index(drop=True)  # Keep only stock_code and feature columns
-            data = pipeline_data.ensure_data_types(data)  # Ensure correct data types
-            data = pipeline_data.fill_inf_with_nan(data)  # Handle infinite values
-
-            # Apply normalization using training period's parameters
-            for col in feature_cols:
-                q_low = normalize_params[col]["quantile_low"]
-                q_high = normalize_params[col]["quantile_high"]
-                mean = normalize_params[col]["mean"]
-                std = normalize_params[col]["std"]
-                # Winsorization
-                data[col] = data[col].clip(q_low, q_high)
-                # Standardization
-                data[col] = (data[col] - mean) / std
-                # Fill missing values
-                data[col] = data[col].replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-            data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
-            predict_data_list.append((data, target))
+        predict_data_list, _ = utils_process_data_parallel.key_parallel(
+            predict_date_list, args.data_dir, filter_index=filter_index, n_jobs_calc=args.n_jobs_calc, n_jobs_io=args.n_jobs_io
+        )
 
         train_dataset, train_dataloader = utils_dataloader.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
         predict_dataset, predict_dataloader = utils_dataloader.get_dataloader(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)

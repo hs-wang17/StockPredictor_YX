@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 def setup_logger(
-    log_dir: str = "/home/user0/results/logs", log_filename: str = f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log", project_name: str = "StockPredictor"
+    log_dir: str = "/home/haris/results/logs", log_filename: str = f"{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.log", project_name: str = "StockPredictor"
 ) -> logging.Logger:
     """
     设置并返回一个日志记录器，日志将保存到指定文件并同时打印到控制台。

@@ -11,20 +11,20 @@ def parse_args():
     parser.add_argument(
         "--data_dir",
         type=str,
-        default="/home/user0/mydata/concat_daily_factor_with_label",
-        help="Directory containing stock data files (default: '/home/user0/mydata/concat_daily_factor_with_label')",
+        default="/home/haris/mydata/concat_daily_factor_with_label",
+        help="Directory containing stock data files (default: '/home/haris/mydata/concat_daily_factor_with_label')",
     )
     parser.add_argument("--device", type=str, default="cuda", help="Device to use for computation ('cuda' or 'cpu')")
     parser.add_argument("--end_date", type=str, default="20250930", help="End date for data processing (default: '20250930')")
     parser.add_argument("--filter_file_path", type=str, default="config/filter_index.fea", help="Path to filter index file")
     parser.add_argument("--gap_days", type=int, default=20, help="Days between end of training and start of prediction")
     parser.add_argument("--k_folds", type=int, default=4, help="Number of folds for K-fold cross-validation (default: 4)")
-    parser.add_argument("--label_file_path", type=str, default="/home/user0/mydata/label.fea", help="Path to label file")
-    parser.add_argument("--log_dir", type=str, default="/home/user0/results/logs", help="Directory to save logs")
-    parser.add_argument("--model_save_dir", type=str, default="/home/user0/results/models", help="Directory to save models")
+    parser.add_argument("--label_file_path", type=str, default="/home/haris/mydata/label.fea", help="Path to label file")
+    parser.add_argument("--log_dir", type=str, default="/home/haris/results/logs", help="Directory to save logs")
+    parser.add_argument("--model_save_dir", type=str, default="/home/haris/results/models", help="Directory to save models")
     parser.add_argument("--num_periods", type=int, default=None, help="Number of periods to process (default: all)")
     parser.add_argument("--predict_period_days", type=int, default=60, help="Number of days for prediction period (default: 60)")
-    parser.add_argument("--predictions_save_dir", type=str, default="/home/user0/results/predictions", help="Directory to save predictions")
+    parser.add_argument("--predictions_save_dir", type=str, default="/home/haris/results/predictions", help="Directory to save predictions")
     parser.add_argument("--project_name", type=str, default="StockPredictor", help="Name of the project/experiment")
     parser.add_argument("--slide_period_days", type=int, default=60, help="Sliding window length in days (default: 60)")
     parser.add_argument("--start_date", type=str, default="20210101", help="Start date for data processing (default: '20200101')")

@@ -11,7 +11,7 @@ def make_predictions_neural_network(
     model: torch.nn.Module,
     dataloader: DataLoader,
     logger,
-    predictions_save_dir: str = "/home/user0/results/predictions",
+    predictions_save_dir: str = "/home/haris/results/predictions",
     device: str = "cuda",
     use_swanlab: bool = True,
 ) -> pd.DataFrame:

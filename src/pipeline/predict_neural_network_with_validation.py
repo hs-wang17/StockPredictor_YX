@@ -11,12 +11,12 @@ def make_predictions_neural_network(
     models: list,  # list of trained torch.nn.Module, one per fold
     dataloader: DataLoader,
     logger,
-    predictions_save_dir: str = "/home/user0/results/predictions",
+    predictions_save_dir: str = "/home/haris/results/predictions",
     project_name: str = "StockPredictor",
     device: str = "cuda",
     use_swanlab: bool = True,
     period_index: int = 0,
-    model_save_dir: str = "/home/user0/results/models/",
+    model_save_dir: str = "/home/haris/results/models/",
     timestamp: str = None,
 ) -> pd.DataFrame:
     """

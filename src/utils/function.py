@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def generate_train_predict_dates(date_list, train_period_days=720, predict_period_days=60, slide_period_days=60, gap_days=10, from_start=False, inverse=False):
+def generate_train_predict_dates(date_list, train_period_days=720, predict_period_days=60, slide_period_days=60, gap_days=10, from_start=False):
     """
     Generate training and prediction period date lists based on the provided trading dates.
     Period lengths and slide steps are measured in trading days (not calendar days).
@@ -51,10 +51,5 @@ def generate_train_predict_dates(date_list, train_period_days=720, predict_perio
 
         # Slide window forward
         start_idx += slide_period_days
-
-    # Reverse lists
-    if inverse:
-        train_dates_list = train_dates_list[::-1]
-        predict_dates_list = predict_dates_list[::-1]
 
     return len(train_dates_list), train_dates_list, predict_dates_list

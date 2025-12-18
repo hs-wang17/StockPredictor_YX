@@ -21,7 +21,7 @@ def run():
 
     # Generate training and prediction periods
     date_list = sorted([file_name[:8] for file_name in os.listdir(args.data_dir)[:]])  # Get all available dates
-    trade_date_list = pd.read_feather("/home/user0/mydata/trade_date.fea")  # Load trade date list
+    trade_date_list = pd.read_feather("/home/haris/mydata/trade_date.fea")  # Load trade date list
     date_list = [date for date in date_list if date in trade_date_list["trade_date"].astype(str).tolist()]  # Filter dates to include only trade dates
     date_list = [date for date in date_list if date >= args.start_date and date <= args.end_date]  # Filter dates based on start and end dates
 

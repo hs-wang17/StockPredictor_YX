@@ -16,7 +16,7 @@ def train_neural_network_model(
     logger,
     epochs: int = 200,
     learning_rate: float = 1e-4,
-    model_save_dir: str = "/home/user0/results/models/",
+    model_save_dir: str = "/home/haris/results/models/",
     save_model: bool = True,
     device: str = "cuda",
     project_name: str = "StockPredictor",

@@ -115,7 +115,7 @@ Run the pipeline for Neural Network (NN) / 执行神经网络预测：
 
 ```bash
 python src/main_neural_network.py \
-    --data_dir /home/user0/data/StockDailyData/ \
+    --data_dir /home/haris/data/StockDailyData/ \
     --device cuda \
     --train_period_days 720 \
     --predict_period_days 60 \
@@ -126,16 +126,17 @@ or / 或者
 
 ```bash
 screen -S stock_predictor -X quit
-screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_neural_network_parallel.sh > /home/user0/logs/run_para_20251205.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_neural_network_parallel_from_start.sh > /home/user0/logs/run_para_20251209.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/user0/project/predictor/scripts/run_ensemble_parallel.sh > /home/user0/logs/run_para_20251202.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel.sh > /home/haris/logs/run_para_20251205.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_process_data.sh > /home/haris/logs/run_para_20251218.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_from_start.sh > /home/haris/logs/run_para_20251209.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_ensemble_parallel.sh > /home/haris/logs/run_para_20251202.log 2>&1'
 ```
 
 Run the pipeline for LightGBM / Ensemble / 执行 LightGBM / 集成模型预测：
 
 ```bash
 python src/main_ensemble.py \
-    --data_dir /home/user0/data/StockDailyData/ \
+    --data_dir /home/haris/data/StockDailyData/ \
     --train_period_days 720 \
     --predict_period_days 60 \
     --gap_days 20

@@ -21,7 +21,7 @@ def run():
 
     # Generate training and prediction periods
     date_list = sorted([file_name[:8] for file_name in os.listdir(args.data_dir)[:]])  # Get all available dates
-    trade_date_list = pd.read_feather("/home/user0/mydata/trade_date.fea")  # Load trade date list
+    trade_date_list = pd.read_feather("/home/haris/mydata/trade_date.fea")  # Load trade date list
     date_list = [date for date in date_list if date in trade_date_list["trade_date"].astype(str).tolist()]  # Filter dates to include only trade dates
     date_list = [date for date in date_list if date >= args.start_date and date <= args.end_date]  # Filter dates based on start and end dates
 
@@ -32,7 +32,6 @@ def run():
         slide_period_days=args.slide_period_days,
         gap_days=args.gap_days,
         from_start=args.from_start,
-        inverse=args.inverse,
     )  # Generate train and predict date lists for each period
 
     logger.info(f"Number of periods: {num_periods}")
@@ -66,6 +65,8 @@ def run():
         )
 
     for i in range(num_periods):
+        if args.inverse:
+            i = num_periods - 1 - i
         if hasattr(args, "begin_period") and i < args.begin_period:
             logger.info(f"Skipping period {i+1} because begin_period={args.begin_period}")
             continue
