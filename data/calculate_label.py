@@ -25,4 +25,17 @@ label.to_feather("/home/haris/mydata/label.fea")
 trade_date_df = pd.DataFrame({"trade_date": label.index})
 trade_date_df.reset_index(drop=True).to_feather("/home/haris/mydata/trade_date.fea")
 
+# 新标签（3日、5日、10日、20日等权重）
+stk_ret_10 = vwap.pct_change(10).shift(-11).dropna(how="all")
+stk_ret_5 = vwap.pct_change(5).shift(-6).dropna(how="all")
+stk_ret_3 = vwap.pct_change(3).shift(-4).dropna(how="all")
+stk_ret_mix = (stk_ret + stk_ret_10 + stk_ret_5 + stk_ret_3) / 4.0
+label_mix = stk_ret_mix.sub(idx_ret, axis=0).dropna(how="all")
+mask_mix = zt_st_stop_df.reindex(index=label_mix.index, columns=label_mix.columns)
+label_mix = label_mix.mask(mask == 1).dropna(how="all")
+label_mix.to_feather("/home/haris/project/backtester/data/label_mix.fea")
+label_mix.to_feather("/home/haris/mydata/label_mix.fea")
+trade_date_df_mix = pd.DataFrame({"trade_date": label_mix.index})
+trade_date_df_mix.reset_index(drop=True).to_feather("/home/haris/mydata/trade_date_mix.fea")
+
 print("Done")

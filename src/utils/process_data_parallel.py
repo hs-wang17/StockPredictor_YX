@@ -1,4 +1,3 @@
-# 文件名: data_loader_parallel.py
 import os
 import sys
 import time
@@ -7,9 +6,6 @@ import pandas as pd
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from tqdm import tqdm
 
-# === 路径配置 ===
-# 确保能导入您的 pipeline 模块
-# 如果您的主程序已经添加了路径，这里其实可以省略，为了保险起见保留
 sys.path.append("/home/haris/project/predictor/src")
 
 try:
@@ -33,10 +29,13 @@ def _process_single_file_worker(args_pack):
     output_path = os.path.join(TEMP_OUTPUT_DIR, f"proc_{date}.feather")
 
     try:
-        # === 您的原始业务逻辑 ===
         data = pipeline_data.load_data(file_path)
-        target = data["label"]
-        data = data.drop(columns=["label"])
+        if "label" in data.columns:
+            target = data["label"]
+            data = data.drop(columns=["label"])
+            target.to_frame(name="target").to_feather(output_path.replace(".feather", "_target.feather"))
+        else:
+            target = None
         data.columns = [data.columns[j].strip() for j in range(len(data.columns))]
         if filter_index is not None:
             feature_cols = data.columns[filter_index]
@@ -50,7 +49,6 @@ def _process_single_file_worker(args_pack):
         data = pipeline_data.fill_missing_values(data)
         data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
         data.to_feather(output_path)
-        target.to_frame(name="target").to_feather(output_path.replace(".feather", "_target.feather"))
         return date, output_path, True, feature_cols
 
     except Exception as e:
@@ -99,10 +97,14 @@ def key_parallel(date_list, data_dir, filter_index=None, n_jobs_calc=128, n_jobs
         data_path, feature_cols = args
         try:
             data = pd.read_feather(data_path)
-            target = pd.read_feather(data_path.replace(".feather", "_target.feather"))["target"]
-            os.remove(data_path)  # 读完即删
-            os.remove(data_path.replace(".feather", "_target.feather"))
-            return (data, target), feature_cols
+            if os.path.exists(data_path.replace(".feather", "_target.feather")):
+                target = pd.read_feather(data_path.replace(".feather", "_target.feather"))["target"]
+                os.remove(data_path)  # 读完即删
+                os.remove(data_path.replace(".feather", "_target.feather"))
+                return (data, target), feature_cols
+            else:
+                os.remove(data_path)  # 读完即删
+                return (data, None), feature_cols
         except:
             return None, None
 

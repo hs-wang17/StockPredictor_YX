@@ -1,19 +1,14 @@
+import os
+import pandas as pd
+import swanlab
+from datetime import datetime
 import config.config_neural_network as config
-import pipeline.data as pipeline_data
 import pipeline.filter as pipeline_filter
 import pipeline.predict_neural_network_with_validation as pipeline_predict_neural_network
 import pipeline.train_neural_network_with_validation_parallel as pipeline_train_neural_network
 import utils.dataloader as utils_dataloader
 import utils.function as utils_function
-import utils.neural_network_model as utils_neural_network_model
 import utils.process_data_parallel as utils_process_data_parallel
-
-import numpy as np
-import pandas as pd
-import os
-import tqdm
-import swanlab
-from datetime import datetime
 
 
 def run():
@@ -33,6 +28,7 @@ def run():
         slide_period_days=args.slide_period_days,
         gap_days=args.gap_days,
         from_start=args.from_start,
+        remove_abnormal=args.remove_abnormal,
     )  # Generate train and predict date lists for each period
 
     logger.info(f"Number of periods: {num_periods}")
@@ -77,6 +73,7 @@ def run():
         logger.info(f"  Predict Dates: {predict_dates_list[i][0]} to {predict_dates_list[i][-1]}; Length: {len(predict_dates_list[i])} days")
 
         train_date_list, predict_date_list = train_dates_list[i], predict_dates_list[i]
+        # Delete train_date_list 20240201-20240223
         train_data_list, predict_data_list = [], []
         filter_index = pipeline_filter.read_filter_index(file_path=args.filter_file_path, period_index=i)
 
@@ -92,17 +89,20 @@ def run():
             predict_date_list, args.data_dir, filter_index=filter_index, n_jobs_calc=args.n_jobs_calc, n_jobs_io=args.n_jobs_io
         )
 
-        train_dataset, train_dataloader = utils_dataloader.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
-        predict_dataset, predict_dataloader = utils_dataloader.get_dataloader(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)
+        train_dataset, _ = utils_dataloader.get_dataloader(train_data_list, batch_size=args.train_batch_size, shuffle=False)
+        predict_dataset, _ = utils_dataloader.get_dataloader_predict(predict_data_list, batch_size=args.predict_batch_size, shuffle=False)
 
         # Train model
-        model = pipeline_train_neural_network.train_neural_network_model_parallel(
-            utils_neural_network_model.neural_network_model(input_dim=len(feature_cols), hidden_dim=args.hidden_dim, output_dim=1, model_type=args.model_type),
-            train_dataset,  # train_dataloader when without validation
-            logger,
-            model_save_dir=args.model_save_dir,
+        model_param_dict = {"input_dim": len(feature_cols), "hidden_dim": args.hidden_dim, "output_dim": 1, "model_type": args.model_type}
+        models = pipeline_train_neural_network.train_neural_network_model_parallel(
+            model_param_dict=model_param_dict,
+            dataset=train_dataset,
+            logger=logger,
             epochs=args.epochs,
             learning_rate=args.learning_rate,
+            criterion=args.criterion,
+            model_save_dir=args.model_save_dir,
+            save_model=True,
             project_name=args.project_name,
             period_index=i,
             model_save_frequency=args.model_save_frequency,
@@ -115,15 +115,16 @@ def run():
 
         # Make predictions
         predictions = pipeline_predict_neural_network.make_predictions_neural_network(
-            model,
-            predict_dataset,  # predict_dataloader when without validation
-            logger,
-            model_save_dir=args.model_save_dir,
+            models=models,
+            dataset=predict_dataset,
+            logger=logger,
             predictions_save_dir=args.predictions_save_dir,
+            project_name=args.project_name,
             device=args.device,
             use_swanlab=args.use_swanlab,
-            timestamp=timestamp,
             period_index=i,
+            model_save_dir=args.model_save_dir,
+            timestamp=timestamp,
         )
 
         all_predictions_list.append(predictions)

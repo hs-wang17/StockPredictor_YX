@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 import pandas as pd
 import tqdm
 import numpy as np
@@ -9,7 +9,7 @@ import swanlab
 
 def make_predictions_neural_network(
     models: list,  # list of trained torch.nn.Module, one per fold
-    dataloader: DataLoader,
+    dataset: Dataset,
     logger,
     predictions_save_dir: str = "/home/haris/results/predictions",
     project_name: str = "StockPredictor",
@@ -27,7 +27,7 @@ def make_predictions_neural_network(
 
     Args:
         models (list of torch.nn.Module): Trained models for each fold.
-        dataloader (DataLoader): DataLoader for prediction data (should yield date, stock_code, features, labels).
+        dataset (Dataset): Dataset for prediction data (should yield date, stock_code, features, labels).
         logger (logging.Logger): Logger for process tracking.
         predictions_save_dir (str): Directory to save CSV files.
         device (str): Device to use ('cuda' or 'cpu').
@@ -52,11 +52,18 @@ def make_predictions_neural_network(
     for fold_idx, model in enumerate(models, start=1):
         fold_predictions, fold_labels, dates, stock_codes = [], [], [], []
         with torch.no_grad():
-            for date, stock_code, features, labels in tqdm.tqdm(dataloader, desc=f"Predicting fold {fold_idx}", leave=False):
+            for date, stock_code, features, labels in tqdm.tqdm(dataset, desc=f"Predicting fold {fold_idx}", leave=False):
                 features = features.to(device)
                 outputs = model(features)
-                outputs = outputs.detach().cpu().numpy().squeeze()
-                labels = labels.detach().cpu().numpy().squeeze()
+                if isinstance(outputs, (tuple, list)):
+                    outputs = outputs[1].detach().cpu().numpy().squeeze()
+                else:
+                    outputs = outputs.detach().cpu().numpy().squeeze()
+                labels = labels.detach().cpu().numpy()
+                if labels.ndim == 2:
+                    labels = labels[:, -1]
+                else:
+                    labels = labels.squeeze()
                 date = date.detach().cpu().numpy().squeeze()
                 stock_code = stock_code.detach().cpu().numpy().squeeze()
 

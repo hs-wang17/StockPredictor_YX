@@ -8,42 +8,39 @@
 # Default parameters (can be overridden by ENV variables)
 # -----------------------------
 : "${BEGIN_PERIOD:=0}"
-: "${CRITERION:=mse}"
-: "${DATA_DIR:=/home/haris/mydata_20260109/concat_daily_factor_with_label_vector}"
+: "${DATA_DIR:=/home/haris/mydata_20251231/concat_daily_factor_with_label}"
 : "${DEVICE:=cuda:0}"
-: "${END_DATE:=20251208}"
+: "${END_DATE:=}"
 : "${EPOCHS:=200}"
 : "${FILTER_FILE_PATH:=config/filter_index.fea}"
 : "${FROM_START:=False}"
 : "${GAP_DAYS:=20}"
 : "${HIDDEN_DIM:=64}"
-: "${INVERSE:=False}"
+: "${INVERSE:=True}"
 : "${K_FOLDS:=4}"
 # : "${LABEL_FILE_PATH:=/home/haris/mydata/label.fea}"
 : "${LEARNING_RATE:=0.0001}"
 : "${LR_DECAY_GAMMA:=0.99}"
 : "${LOG_DIR:=/home/haris/results/logs}"
-: "${MODEL_TYPE:=resnet_backbone}"
-: "${MODEL_SAVE_DIR:=/home/haris/results/models}"
+: "${MODEL_TYPE:=resnet}"
+: "${MODEL_SAVE_DIR:=/home/haris/mymodel/models/StockPredictor_20251231}"
 : "${NUM_PERIODS:=}"
 : "${PREDICT_BATCH_SIZE:=64}"
-: "${PREDICT_PERIOD_DAYS:=5}"
-: "${PREDICTIONS_SAVE_DIR:=/home/haris/results/predictions}"
+: "${PREDICT_PERIOD_DAYS:=60}"
+: "${PREDICTIONS_SAVE_DIR:=/home/haris/mymodel/predictions/StockPredictor_20251231}"
 : "${PROJECT_NAME:=StockPredictor}"
-: "${REMOVE_ABNORMAL:=False}"
 : "${MODEL_SAVE_FREQUENCY:=20}"
 : "${SLIDE_PERIOD_DAYS:=60}"
 : "${START_DATE:=20180401}"
 : "${TRAIN_BATCH_SIZE:=1}"
-: "${TRAIN_PERIOD_DAYS:=5}"
-: "${USE_SWANLAB:=True}"
+: "${TRAIN_PERIOD_DAYS:=720}"
+: "${USE_SWANLAB:=False}"
 
 # -----------------------------
 # Run Python script
 # -----------------------------
-python /home/haris/project/predictor/src/main_neural_network_parallel_process_data_training_batch.py \
+/home/haris/miniconda3/envs/myenv/bin/python /home/haris/project/predictor/src/update_neural_network_parallel_train.py \
     --begin_period "${BEGIN_PERIOD}" \
-    --criterion "${CRITERION}" \
     --data_dir "${DATA_DIR}" \
     --device "${DEVICE}" \
     --end_date "${END_DATE}" \
@@ -63,7 +60,6 @@ python /home/haris/project/predictor/src/main_neural_network_parallel_process_da
     --predict_period_days "${PREDICT_PERIOD_DAYS}" \
     --predictions_save_dir "${PREDICTIONS_SAVE_DIR}" \
     --project_name "${PROJECT_NAME}" \
-    --remove_abnormal "${REMOVE_ABNORMAL}" \
     --model_save_frequency "${MODEL_SAVE_FREQUENCY}" \
     --slide_period_days "${SLIDE_PERIOD_DAYS}" \
     --start_date "${START_DATE}" \

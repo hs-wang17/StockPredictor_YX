@@ -8,6 +8,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the stock prediction pipeline.")
 
     parser.add_argument("--begin_period", type=int, default=0, help="Starting period for data processing (default: 0)")
+    parser.add_argument("--criterion", type=str, default="mse", help="Loss function to use (default: 'mse')")
     parser.add_argument(
         "--data_dir",
         type=str,
@@ -37,11 +38,12 @@ def parse_args():
     parser.add_argument("--predictions_save_dir", type=str, default="/home/haris/results/predictions", help="Directory to save predictions")
     parser.add_argument("--project_name", type=str, default="StockPredictor", help="Name of the project/experiment")
     parser.add_argument("--model_save_frequency", type=int, default=5, help="Frequency (in epochs) to save model (default: 5)")
+    parser.add_argument("--remove_abnormal", type=str2bool, default=True, help="Whether to remove abnormal data points (default: True)")
     parser.add_argument("--slide_period_days", type=int, default=60, help="Sliding window length in days (default: 60)")
     parser.add_argument("--start_date", type=str, default="20210101", help="Start date for data processing (default: '20200101')")
     parser.add_argument("--train_batch_size", type=int, default=1, help="Batch size for training (default: 1)")
     parser.add_argument("--train_period_days", type=int, default=720, help="Number of days for training period (default: 720)")
-    parser.add_argument("--use_swanlab", type=bool, default=True, help="Enable SwanLab logging")
+    parser.add_argument("--use_swanlab", type=str2bool, default=True, help="Enable SwanLab logging")
     parser.add_argument("--n_jobs_calc", type=int, default=64, help="Number of parallel jobs for calculation stage (default: 64)")
     parser.add_argument("--n_jobs_io", type=int, default=16, help="Number of parallel jobs for I/O stage (default: 16)")
 
