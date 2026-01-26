@@ -29,6 +29,10 @@ secrets/
 # log file
 log/
 *.log
+swanlog
 
 # Temporary file
 temp*
+
+# Archived file
+archive

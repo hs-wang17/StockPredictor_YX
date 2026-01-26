@@ -126,11 +126,10 @@ or / 或者
 
 ```bash
 screen -S stock_predictor -X quit
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel.sh > /home/haris/logs/run_para_20251205.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_process_data.sh > /home/haris/logs/run_para_20251218.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/update/model/update_neural_network_parallel_train.sh > /home/haris/logs/update_para_train_20251229.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/update/model/update_neural_network_parallel_predict.sh > /home/haris/logs/update_para_predict_20251229.log 2>&1'
 screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_process_data_training_batch.sh > /home/haris/logs/run_para_20251219.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_from_start.sh > /home/haris/logs/run_para_20251209.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_ensemble_parallel.sh > /home/haris/logs/run_para_20251202.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_process_data_training_batch_classification.sh > /home/haris/logs/run_para_20260117.log 2>&1'
 ```
 
 Run the pipeline for LightGBM / Ensemble / 执行 LightGBM / 集成模型预测：
@@ -169,7 +168,6 @@ python src/main_ensemble.py \
 
 - `docs/flowchart.md` contains pipeline workflow diagrams / 流程图
 - Additional documentation for NN & LightGBM:
-
   - Data preprocessing / 数据预处理
   - Feature selection / 特征选择
   - Model architecture & hyperparameters / 模型结构与超参数

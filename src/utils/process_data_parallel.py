@@ -1,4 +1,3 @@
-# 文件名: data_loader_parallel.py
 import os
 import sys
 import time
@@ -7,9 +6,6 @@ import pandas as pd
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from tqdm import tqdm
 
-# === 路径配置 ===
-# 确保能导入您的 pipeline 模块
-# 如果您的主程序已经添加了路径，这里其实可以省略，为了保险起见保留
 sys.path.append("/home/haris/project/predictor/src")
 
 try:
@@ -27,16 +23,23 @@ def _process_single_file_worker(args_pack):
     [内部Worker函数] 子进程执行的具体逻辑
     注意：此函数必须定义在模块顶层，否则 multiprocessing 无法序列化 (pickling)
     """
-    date, data_dir, filter_index = args_pack
+    date, data_dir, filter_index, type = args_pack
 
     file_path = os.path.join(data_dir, f"{date}.fea")
     output_path = os.path.join(TEMP_OUTPUT_DIR, f"proc_{date}.feather")
 
     try:
-        # === 您的原始业务逻辑 ===
         data = pipeline_data.load_data(file_path)
-        target = data["label"]
-        data = data.drop(columns=["label"])
+        if "label" in data.columns:
+            if type == "train":
+                data = data.dropna(subset=["label"])  # Drop rows with missing labels when processing training data (but not prediction data)
+            elif type == "predict":
+                pass  # TODO: revise this later
+            target = data["label"]
+            data = data.drop(columns=["label"])
+            target.to_frame(name="target").to_feather(output_path.replace(".feather", "_target.feather"))
+        else:
+            target = None
         data.columns = [data.columns[j].strip() for j in range(len(data.columns))]
         if filter_index is not None:
             feature_cols = data.columns[filter_index]
@@ -50,7 +53,6 @@ def _process_single_file_worker(args_pack):
         data = pipeline_data.fill_missing_values(data)
         data = pd.concat([pd.DataFrame({"date": [date] * len(data)}), data], axis=1)
         data.to_feather(output_path)
-        target.to_frame(name="target").to_feather(output_path.replace(".feather", "_target.feather"))
         return date, output_path, True, feature_cols
 
     except Exception as e:
@@ -58,7 +60,7 @@ def _process_single_file_worker(args_pack):
         return date, None, False, None
 
 
-def key_parallel(date_list, data_dir, filter_index=None, n_jobs_calc=128, n_jobs_io=32):
+def key_parallel(date_list, data_dir, filter_index=None, n_jobs_calc=128, n_jobs_io=32, type="train"):
     """
     [对外接口] 并行加载数据的主函数
 
@@ -80,7 +82,7 @@ def key_parallel(date_list, data_dir, filter_index=None, n_jobs_calc=128, n_jobs
     start_time = time.time()
 
     # 2. 准备参数
-    args_list = [(date, data_dir, filter_index) for date in date_list]
+    args_list = [(date, data_dir, filter_index, type) for date in date_list]
 
     # 3. 第一阶段：多进程计算 (CPU Bound)
     # 使用 ProcessPoolExecutor 绕过 GIL 锁
@@ -99,10 +101,14 @@ def key_parallel(date_list, data_dir, filter_index=None, n_jobs_calc=128, n_jobs
         data_path, feature_cols = args
         try:
             data = pd.read_feather(data_path)
-            target = pd.read_feather(data_path.replace(".feather", "_target.feather"))["target"]
-            os.remove(data_path)  # 读完即删
-            os.remove(data_path.replace(".feather", "_target.feather"))
-            return (data, target), feature_cols
+            if os.path.exists(data_path.replace(".feather", "_target.feather")):
+                target = pd.read_feather(data_path.replace(".feather", "_target.feather"))["target"]
+                os.remove(data_path)  # 读完即删
+                os.remove(data_path.replace(".feather", "_target.feather"))
+                return (data, target), feature_cols
+            else:
+                os.remove(data_path)  # 读完即删
+                return (data, None), feature_cols
         except:
             return None, None
 
