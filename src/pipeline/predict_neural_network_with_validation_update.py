@@ -14,6 +14,7 @@ def make_predictions_neural_network(
     project_name: str = "StockPredictor",
     device: str = "cuda",
     period_index: int = 0,
+    suffix: str = "",
 ) -> pd.DataFrame:
     """
     Make predictions using multiple trained models (from K-fold CV) and log prediction errors.
@@ -33,7 +34,7 @@ def make_predictions_neural_network(
         pd.DataFrame: Pivot table of averaged predictions (stock_code × date).
     """
 
-    csv_path = os.path.join(predictions_save_dir, f"predictions_period_{period_index}.csv")
+    csv_path = os.path.join(predictions_save_dir, f"predictions_period_{period_index}{suffix}.csv")
     if os.path.exists(csv_path):
         logger.info(f"Prediction file already exists, skip saving: {csv_path}")
         return None
@@ -85,7 +86,7 @@ def make_predictions_neural_network(
         pivot_df = result_df.pivot(index="stock_code", columns="date", values="prediction")
 
         # 这里要读取最新的csv，然后覆盖掉对应的列，也就是每日实际上只增加了最后一列
-        pattern = re.compile(r"predictions_period_(\d+)\.csv")
+        pattern = re.compile(r"predictions_period_(\d+)"+suffix+".csv")
         existing_files = []
         for fname in os.listdir(predictions_save_dir):
             m = pattern.match(fname)

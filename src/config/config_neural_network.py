@@ -51,6 +51,7 @@ def parse_args():
     parser.add_argument("--remove_abnormal", type=str2bool, default=True, help="Whether to remove abnormal data points (default: True)")
     parser.add_argument("--slide_period_days", type=int, default=60, help="Sliding window length in days (default: 60)")
     parser.add_argument("--start_date", type=str, default="20210101", help="Start date for data processing (default: '20200101')")
+    parser.add_argument("--suffix", type=str, default="", help="Suffix for the project name (default: ''))")
     parser.add_argument("--trade_date_path", type=str, default="/home/haris/mydata_20251231/trade_date.fea", help="Path to trade date file")
     parser.add_argument("--train_batch_size", type=int, default=1, help="Batch size for training (default: 1)")
     parser.add_argument("--train_period_days", type=int, default=720, help="Number of days for training period (default: 720)")

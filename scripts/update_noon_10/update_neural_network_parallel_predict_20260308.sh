@@ -31,7 +31,8 @@
 : "${PROJECT_NAME:=StockPredictor_20260308}"
 : "${MODEL_SAVE_FREQUENCY:=1}"
 : "${SLIDE_PERIOD_DAYS:=0}"
-: "${START_DATE:=20260101}"
+: "${START_DATE:=20260106}"
+: "${SUFFIX:=_20260308}"
 : "${TRADE_DATE_PATH:=/home/haris/raid0/shared/haris/mydata_20260127/trade_date_10.fea}"
 : "${TRAIN_BATCH_SIZE:=1}"
 : "${TRAIN_PERIOD_DAYS:=720}"
@@ -64,6 +65,7 @@
     --model_save_frequency "${MODEL_SAVE_FREQUENCY}" \
     --slide_period_days "${SLIDE_PERIOD_DAYS}" \
     --start_date "${START_DATE}" \
+    --suffix "${SUFFIX}" \
     --trade_date_path "${TRADE_DATE_PATH}" \
     --train_batch_size "${TRAIN_BATCH_SIZE}" \
     --train_period_days "${TRAIN_PERIOD_DAYS}" \

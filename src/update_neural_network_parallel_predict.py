@@ -40,6 +40,7 @@ def run():
         project_name=args.project_name,
         period_index=predict_date_list[-1],
         device=args.device,
+        suffix=args.suffix,
     )
 
     logger.info("All periods processed.")
