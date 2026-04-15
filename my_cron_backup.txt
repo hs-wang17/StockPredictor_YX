@@ -1,0 +1,55 @@
+# Edit this file to introduce tasks to be run by cron.
+# 
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# 
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+# 
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+# 
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+# 
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
+
+# update trade support data
+# 30 23 * * * /usr/bin/screen -dmS update_trade_support_5      bash -lc "/home/haris/miniconda3/envs/myenv/bin/python /home/haris/project/backtester/src/update_trade_support5.py >> /home/haris/logs/update_trade_support5.log 2>&1"
+#  0  0 * * * /usr/bin/screen -dmS update_trade_support_7      bash -lc "/home/haris/miniconda3/envs/myenv/bin/python /home/haris/project/backtester/src/update_trade_support7.py > /home/haris/logs/update_trade_support7.log 2>&1"
+ 0  8 * * * /usr/bin/screen -dmS update_vwap_twap            bash -lc "/home/haris/mydata_20251231/run_vwap_twap.sh > /home/haris/logs/update_vwap_twap.log 2>&1"
+
+# update 20251231 model (morning_20)
+ 0  1 * * * /usr/bin/screen -dmS update_data_20251231        bash -lc "/home/haris/mydata_20251231/run.sh > /home/haris/logs/update_data_20251231.log 2>&1"
+ 0  3 * * * /usr/bin/screen -dmS update_model_train_20251231 bash -lc "/home/haris/project/predictor/scripts/update/update_neural_network_parallel_train_20251231.sh > /home/haris/logs/update_model_train_20251231.log 2>&1"
+ 0  4 * * * /usr/bin/screen -dmS update_predict_20251231     bash -lc "/home/haris/project/predictor/scripts/update/update_neural_network_parallel_predict_20251231.sh > /home/haris/logs/update_predict_20251231.log 2>&1"
+ 0  5 * * * /usr/bin/screen -dmS backtest_predict_20251231   bash -lc "/home/haris/project/backtester/scripts/run_daily_update.sh > /home/haris/logs/update_backtest_predict_20251231.log 2>&1"
+
+# update 20260306 model (morning_10)
+30  3 * * * /usr/bin/screen -dmS update_model_train_20260306 bash -lc "/home/haris/project/predictor/scripts/update_10/update_neural_network_parallel_train_20260306.sh > /home/haris/logs/update_model_train_20260306.log 2>&1"
+30  4 * * * /usr/bin/screen -dmS update_predict_20260306     bash -lc "/home/haris/project/predictor/scripts/update_10/update_neural_network_parallel_predict_20260306.sh > /home/haris/logs/update_predict_20260306.log 2>&1"
+30  5 * * * /usr/bin/screen -dmS backtest_predict_20260306   bash -lc "/home/haris/project/backtester/scripts/run_daily_update_10.sh > /home/haris/logs/update_backtest_predict_20260306.log 2>&1"
+
+# update 20260302 model (noon_20)
+25 12 * * * /usr/bin/screen -dmS update_data_20260127_fast   bash -lc "/home/haris/mydata_20260127/run_fast.sh > /home/haris/logs/update_data_20260127_fast.log 2>&1"
+ 0 13 * * * /usr/bin/screen -dmS update_data_20260127        bash -lc "/home/haris/mydata_20260127/run.sh > /home/haris/logs/update_data_20260127.log 2>&1"
+ 0  6 * * * /usr/bin/screen -dmS update_model_train_20260302 bash -lc "/home/haris/project/predictor/scripts/update_noon/update_neural_network_parallel_train_20260302.sh > /home/haris/logs/update_model_train_20260302.log 2>&1"
+35 12 * * * /usr/bin/screen -dmS update_predict_20260302     bash -lc "/home/haris/project/predictor/scripts/update_noon/update_neural_network_parallel_predict_20260302.sh > /home/haris/logs/update_predict_20260302.log 2>&1"
+ 0  7 * * * /usr/bin/screen -dmS backtest_predict_20260302   bash -lc "/home/haris/project/backtester/scripts/run_daily_update_noon.sh > /home/haris/logs/update_backtest_predict_20260302.log 2>&1"
+
+# update 20260308 model (noon_10)
+30  6 * * * /usr/bin/screen -dmS update_model_train_20260308 bash -lc "/home/haris/project/predictor/scripts/update_noon_10/update_neural_network_parallel_train_20260308.sh > /home/haris/logs/update_model_train_20260308.log 2>&1"
+40 12 * * * /usr/bin/screen -dmS update_predict_20260308     bash -lc "/home/haris/project/predictor/scripts/update_noon_10/update_neural_network_parallel_predict_20260308.sh > /home/haris/logs/update_predict_20260308.log 2>&1"
+30  7 * * * /usr/bin/screen -dmS backtest_predict_20260308   bash -lc "/home/haris/project/backtester/scripts/run_daily_update_noon_10.sh > /home/haris/logs/update_backtest_predict_20260308.log 2>&1"
+
+# update model comparsion
+35  7 * * * /usr/bin/screen -dmS update_model_comparison     bash -lc "/home/haris/project/backtester/scripts/run_daily_update_compare.sh > /home/haris/logs/update_model_comparison.log 2>&1"
+40  7 * * * /usr/bin/screen -dmS backtest_predict_20260405   bash -lc "/home/haris/project/backtester/scripts/run_daily_update_fusion_10.sh > /home/haris/logs/update_backtest_predict_20260405.log 2>&1"

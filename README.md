@@ -136,8 +136,8 @@ screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/
 screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260316_noon.sh > /home/haris/logs/run_para_20260316.log 2>&1'
 screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260319_morning.sh > /home/haris/logs/run_para_20260319.log 2>&1'
 screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260331_morning.sh > /home/haris/logs/run_para_20260331.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260408_morning.sh > /home/haris/logs/run_para_20260408.log 2>&1'
-screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260409_morning.sh > /home/haris/logs/run_para_20260409.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260411_noon.sh > /home/haris/logs/run_para_20260411.log 2>&1'
+screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/save/run_neural_network_parallel_process_data_training_batch_20260412_noon.sh > /home/haris/logs/run_para_20260412.log 2>&1'
 screen -dmS stock_predictor bash -c 'bash /home/haris/project/predictor/scripts/run_neural_network_parallel_process_data_training_batch_classification.sh > /home/haris/logs/run_para_20260117.log 2>&1'
 ```
 
