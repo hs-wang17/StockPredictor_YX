@@ -30,6 +30,7 @@ secrets/
 log/
 *.log
 swanlog
+my_cron_backup.txt
 
 # Temporary file
 temp*
