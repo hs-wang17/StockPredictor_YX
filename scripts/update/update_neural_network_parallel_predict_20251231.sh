@@ -77,8 +77,19 @@
 # -----------------------------
 /home/haris/miniconda3/envs/myenv/bin/python /home/haris/mymodel/merge_data_20251231_all_stocks.py
 
+awk -F',' '{
+printf "%s", $1
+    for(i=NF-4; i<=NF; i++) {
+        printf ",%s", $i
+    }
+    printf "\n"
+}' /home/haris/mymodel/predictions/StockPredictor_20251231_merged_all_stocks.csv > /tmp/StockPredictor_20251231.csv
+
+cat /home/haris/logs/update_predict_20251231.log | mutt -s "每日预测任务日志(morning) - $(date +\%Y-\%m-\%d)" -a /tmp/StockPredictor_20251231.csv -- xsheng9867@163.com
+
+rm /tmp/StockPredictor_20251231.csv
+
 # -----------------------------
 # Finish message
 # -----------------------------
 echo "Neural Network predictor pipeline finished!"
-# cat /home/haris/logs/update_predict_20251231.log | mail -s "每日预测任务日志(morning) - $(date +\%Y-\%m-\%d)" xsheng9867@163.com
