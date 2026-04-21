@@ -6,7 +6,6 @@ LOG_BASE="/home/haris/logs"
 
 # 定义需要运行的脚本列表（按日期顺序）
 scripts=(
-    "run_neural_network_parallel_process_data_training_batch_20260420_noon.sh"
     "run_neural_network_parallel_process_data_training_batch_20260421_noon.sh"
     "run_neural_network_parallel_process_data_training_batch_20260422_noon.sh"
     "run_neural_network_parallel_process_data_training_batch_20260423_noon.sh"
